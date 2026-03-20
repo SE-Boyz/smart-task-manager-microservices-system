@@ -1,19 +1,24 @@
-﻿const fs = require("fs").promises;
-const path = require("path");
+const { connectToDatabase } = require("../config/database");
 
-const notificationsFilePath = path.join(__dirname, "notifications.json");
+const COLLECTION_NAME = "notifications";
 
-async function readNotifications() {
-  const fileContent = await fs.readFile(notificationsFilePath, "utf-8");
-  return JSON.parse(fileContent.replace(/^\uFEFF/, ""));
+async function getCollection() {
+  const database = await connectToDatabase();
+  return database.collection(COLLECTION_NAME);
 }
 
-async function writeNotifications(notifications) {
-  await fs.writeFile(notificationsFilePath, JSON.stringify(notifications, null, 2));
+async function createNotification(notification) {
+  const collection = await getCollection();
+  await collection.insertOne(notification);
+  return notification;
+}
+
+async function getNotifications() {
+  const collection = await getCollection();
+  return collection.find({}, { projection: { _id: 0 } }).sort({ createdAt: -1 }).toArray();
 }
 
 module.exports = {
-  readNotifications,
-  writeNotifications
+  createNotification,
+  getNotifications
 };
-

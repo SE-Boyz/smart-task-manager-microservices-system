@@ -4,6 +4,7 @@ const helmet = require("helmet");
 const swaggerUi = require("swagger-ui-express");
 const notificationRoutes = require("./routes/notificationRoutes");
 const swaggerSpec = require("./config/swagger");
+const { getDatabaseStatus } = require("./config/database");
 const errorHandler = require("./middleware/errorHandler");
 
 const app = express();
@@ -13,7 +14,11 @@ app.use(cors());
 app.use(express.json());
 
 app.get("/health", (req, res) => {
-  res.status(200).json({ message: "Notification Service is running" });
+  res.status(200).json({
+    service: "notification-service",
+    status: "ok",
+    database: getDatabaseStatus()
+  });
 });
 
 app.use("/", notificationRoutes);

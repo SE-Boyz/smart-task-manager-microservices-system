@@ -1,14 +1,12 @@
-﻿const bcrypt = require("bcrypt");
+const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const { v4: uuidv4 } = require("uuid");
-const { readUsers, writeUsers } = require("../data/userStore");
+const { createUser, findUserByEmail, findUserById } = require("../data/userStore");
 
 async function register(req, res, next) {
   try {
     const { name, email, password } = req.body;
-    const users = await readUsers();
-
-    const existingUser = users.find((user) => user.email === email);
+    const existingUser = await findUserByEmail(email);
 
     if (existingUser) {
       return res.status(409).json({ message: "User already exists" });
@@ -23,8 +21,7 @@ async function register(req, res, next) {
       password: hashedPassword
     };
 
-    users.push(newUser);
-    await writeUsers(users);
+    await createUser(newUser);
 
     return res.status(201).json({
       message: "User registered successfully"
@@ -37,8 +34,7 @@ async function register(req, res, next) {
 async function login(req, res, next) {
   try {
     const { email, password } = req.body;
-    const users = await readUsers();
-    const user = users.find((item) => item.email === email);
+    const user = await findUserByEmail(email);
 
     if (!user) {
       return res.status(401).json({ message: "Invalid email or password" });
@@ -71,8 +67,7 @@ async function login(req, res, next) {
 
 async function getProfile(req, res, next) {
   try {
-    const users = await readUsers();
-    const user = users.find((item) => item.id === req.user.id);
+    const user = await findUserById(req.user.id);
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });

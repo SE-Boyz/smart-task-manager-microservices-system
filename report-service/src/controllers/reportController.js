@@ -1,5 +1,6 @@
-﻿const axios = require("axios");
+const axios = require("axios");
 const jwt = require("jsonwebtoken");
+const { saveSummarySnapshot } = require("../data/reportStore");
 
 function createServiceToken() {
   return jwt.sign(
@@ -23,15 +24,16 @@ async function getSummary(req, res, next) {
     });
 
     const tasks = response.data.tasks || [];
-    const total = tasks.length;
-    const completed = tasks.filter((task) => task.status === "completed").length;
-    const pending = tasks.filter((task) => task.status === "pending").length;
+    const summary = {
+      total: tasks.length,
+      completed: tasks.filter((task) => task.status === "completed").length,
+      pending: tasks.filter((task) => task.status === "pending").length,
+      generatedAt: new Date().toISOString()
+    };
 
-    return res.status(200).json({
-      total,
-      completed,
-      pending
-    });
+    await saveSummarySnapshot(summary);
+
+    return res.status(200).json(summary);
   } catch (error) {
     if (error.response) {
       return res.status(error.response.status).json({
