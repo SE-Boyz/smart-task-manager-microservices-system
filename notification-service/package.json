@@ -5,10 +5,10 @@
   "type": "module",
   "main": "src/server.ts",
   "scripts": {
-    "start": "tsx src/server.ts",
+    "start": "node dist/server.js",
     "dev": "tsx watch src/server.ts",
     "lint": "eslint .",
-    "build": "echo \"Building notification-service...\"",
+    "build": "tsc",
     "test": "jest --passWithNoTests"
   },
   "dependencies": {
