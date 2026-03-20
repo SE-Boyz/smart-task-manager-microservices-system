@@ -2,10 +2,11 @@
   "name": "api-gateway",
   "version": "1.0.0",
   "description": "API gateway for Smart Task Manager microservices",
-  "main": "src/server.js",
+  "type": "module",
+  "main": "src/server.ts",
   "scripts": {
-    "start": "node src/server.js",
-    "dev": "nodemon src/server.js",
+    "start": "tsx src/server.ts",
+    "dev": "tsx watch src/server.ts",
     "lint": "eslint .",
     "build": "echo \"Building api-gateway...\"",
     "test": "jest --passWithNoTests"
@@ -19,6 +20,11 @@
     "mongodb": "^6.16.0"
   },
   "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.1",
+    "@types/node": "^24.5.2",
+    "tsx": "^4.20.5",
+    "typescript": "^5.9.2",
     "eslint": "^8.57.0",
     "jest": "^29.7.0",
     "nodemon": "^3.1.9"
