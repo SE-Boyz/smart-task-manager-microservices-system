@@ -4,9 +4,12 @@ const { connectToDatabase, closeDatabaseConnection } = require("./config/databas
 const { getEnv } = require("./config/env");
 
 async function startServer() {
-  const { port } = getEnv();
+  const { port, mongoDbName } = getEnv();
+
+  console.log(`Checking MongoDB connection for Task Service (${mongoDbName})...`);
 
   await connectToDatabase();
+  console.log(`MongoDB connection established for Task Service (${mongoDbName}).`);
 
   const server = app.listen(port, () => {
     console.log(`Task Service running on http://localhost:${port}`);

@@ -9,6 +9,7 @@ This service handles:
 - updating tasks
 - deleting tasks
 - sending notifications to the Notification Service
+- persisting tasks in MongoDB
 
 All routes in this service require a valid JWT token.
 
@@ -44,6 +45,8 @@ npm start
 PORT=5002
 JWT_SECRET=your_jwt_secret
 NOTIFICATION_SERVICE_URL=http://localhost:5003
+MONGODB_URI=mongodb+srv://tharindulakshita2001_db_user:your_db_password@cluster0.pjnypci.mongodb.net/?appName=Cluster0
+MONGODB_DB_NAME=task_service_db
 ```
 
 ## Example Requests

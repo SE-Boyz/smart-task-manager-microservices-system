@@ -9,6 +9,7 @@ This service handles:
 - password hashing with `bcrypt`
 - JWT token generation
 - protected profile access
+- persisting users in MongoDB
 
 ## Port
 
@@ -40,6 +41,8 @@ npm start
 ```env
 PORT=5001
 JWT_SECRET=your_jwt_secret
+MONGODB_URI=mongodb+srv://tharindulakshita2001_db_user:your_db_password@cluster0.pjnypci.mongodb.net/?appName=Cluster0
+MONGODB_DB_NAME=auth_service_db
 ```
 
 ## Example Requests

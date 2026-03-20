@@ -4,9 +4,12 @@ const { connectToDatabase, closeDatabaseConnection } = require("./config/databas
 const { getEnv } = require("./config/env");
 
 async function startServer() {
-  const { port } = getEnv();
+  const { port, mongoDbName } = getEnv();
+
+  console.log(`Checking MongoDB connection for Report Service (${mongoDbName})...`);
 
   await connectToDatabase();
+  console.log(`MongoDB connection established for Report Service (${mongoDbName}).`);
 
   const server = app.listen(port, () => {
     console.log(`Report Service running on http://localhost:${port}`);
