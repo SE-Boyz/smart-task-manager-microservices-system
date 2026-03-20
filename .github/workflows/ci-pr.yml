@@ -8,11 +8,23 @@ on:
       - develop
 
 jobs:
+  setup-matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      services: ${{ steps.set-matrix.outputs.services }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: set-matrix
+        run: |
+          SERVICES=$(find . -maxdepth 2 -name "package.json" -not -path "./package.json" -exec dirname {} \; | sed 's|^./||' | jq -R . | jq -s -c .)
+          echo "services=$SERVICES" >> $GITHUB_OUTPUT
+
   build-and-test:
+    needs: setup-matrix
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        service: [api-gateway, auth-service, notification-service, report-service, task-service]
+        service: ${{ fromJson(needs.setup-matrix.outputs.services) }}
     steps:
       - uses: actions/checkout@v4
       - name: Use Node.js
@@ -25,19 +37,29 @@ jobs:
         run: npm ci
         working-directory: ${{ matrix.service }}
       - name: Build check
-        run: npm run build || true # Add build script if needed
+        run: npm run build || true
         working-directory: ${{ matrix.service }}
       - name: Run tests
         run: npm test || true
         working-directory: ${{ matrix.service }}
 
   docker-build-check:
+    needs: setup-matrix
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        service: [api-gateway, auth-service, notification-service, report-service, task-service]
+        service: ${{ fromJson(needs.setup-matrix.outputs.services) }}
     steps:
       - uses: actions/checkout@v4
+      - name: Check for Dockerfile
+        id: check_dockerfile
+        run: |
+          if [ -f "${{ matrix.service }}/Dockerfile" ]; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
       - name: Build Docker image
+        if: steps.check_dockerfile.outputs.exists == 'true'
         run: docker build .
         working-directory: ${{ matrix.service }}

@@ -9,6 +9,7 @@
     "ecmaVersion": "latest",
     "sourceType": "module"
   },
+  "ignorePatterns": ["package.json", "package-lock.json", "node_modules"],
   "rules": {
     "no-unused-vars": "warn",
     "no-console": "off"
