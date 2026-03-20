@@ -7,6 +7,7 @@ const swaggerSpec = require("./config/swagger");
 const { getDatabaseStatus } = require("./config/database");
 const errorHandler = require("./middleware/errorHandler");
 
+
 const app = express();
 
 app.use(helmet());
