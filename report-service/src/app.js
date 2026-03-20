@@ -15,7 +15,7 @@ app.use(express.json());
 
 app.get("/health", (req, res) => {
   res.status(200).json({
-    service: "report-service",
+    service: "report-service ms",
     status: "ok",
     database: getDatabaseStatus()
   });
