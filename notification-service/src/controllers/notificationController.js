@@ -1,5 +1,5 @@
 const { v4: uuidv4 } = require("uuid");
-const { createNotification, getNotifications: listNotifications } = require("../data/notificationStore");
+const { createNotification, getNotifications: listNotifications } = require("../models/notificationModel");
 
 async function storeNotification(req, res, next) {
   try {

@@ -7,7 +7,7 @@ const {
   findTasksByUser,
   getAllTasks,
   updateTaskById
-} = require("../data/taskStore");
+} = require("../models/taskModel");
 
 async function sendNotification(message) {
   try {
