@@ -1,10 +1,9 @@
-﻿const { v4: uuidv4 } = require("uuid");
-const { readNotifications, writeNotifications } = require("../data/notificationStore");
+const { v4: uuidv4 } = require("uuid");
+const { createNotification, getNotifications: listNotifications } = require("../data/notificationStore");
 
 async function storeNotification(req, res, next) {
   try {
     const { message } = req.body;
-    const notifications = await readNotifications();
 
     const newNotification = {
       id: uuidv4(),
@@ -12,8 +11,7 @@ async function storeNotification(req, res, next) {
       createdAt: new Date().toISOString()
     };
 
-    notifications.push(newNotification);
-    await writeNotifications(notifications);
+    await createNotification(newNotification);
 
     return res.status(201).json({
       message: "Notification stored successfully",
@@ -26,7 +24,7 @@ async function storeNotification(req, res, next) {
 
 async function getNotifications(req, res, next) {
   try {
-    const notifications = await readNotifications();
+    const notifications = await listNotifications();
 
     return res.status(200).json({ notifications });
   } catch (error) {

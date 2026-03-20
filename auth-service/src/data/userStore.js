@@ -1,19 +1,30 @@
-﻿const fs = require("fs").promises;
-const path = require("path");
+const { connectToDatabase } = require("../config/database");
 
-const usersFilePath = path.join(__dirname, "users.json");
+const COLLECTION_NAME = "users";
 
-async function readUsers() {
-  const fileContent = await fs.readFile(usersFilePath, "utf-8");
-  return JSON.parse(fileContent.replace(/^\uFEFF/, ""));
+async function getCollection() {
+  const database = await connectToDatabase();
+  return database.collection(COLLECTION_NAME);
 }
 
-async function writeUsers(users) {
-  await fs.writeFile(usersFilePath, JSON.stringify(users, null, 2));
+async function createUser(user) {
+  const collection = await getCollection();
+  await collection.insertOne(user);
+  return user;
+}
+
+async function findUserByEmail(email) {
+  const collection = await getCollection();
+  return collection.findOne({ email }, { projection: { _id: 0 } });
+}
+
+async function findUserById(id) {
+  const collection = await getCollection();
+  return collection.findOne({ id }, { projection: { _id: 0, password: 0 } });
 }
 
 module.exports = {
-  readUsers,
-  writeUsers
+  createUser,
+  findUserByEmail,
+  findUserById
 };
-
