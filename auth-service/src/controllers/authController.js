@@ -1,7 +1,7 @@
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const { v4: uuidv4 } = require("uuid");
-const { createUser, findUserByEmail, findUserById } = require("../data/userStore");
+const { createUser, findUserByEmail, findUserById } = require("../models/userModel");
 
 async function register(req, res, next) {
   try {

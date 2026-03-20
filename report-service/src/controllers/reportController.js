@@ -1,6 +1,6 @@
 const axios = require("axios");
 const jwt = require("jsonwebtoken");
-const { saveSummarySnapshot } = require("../data/reportStore");
+const { saveSummarySnapshot } = require("../models/reportModel");
 
 function createServiceToken() {
   return jwt.sign(

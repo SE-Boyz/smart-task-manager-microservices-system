@@ -1,14 +1,8 @@
-const { MongoClient } = require("mongodb");
+const mongoose = require("mongoose");
 const { getEnv } = require("./env");
 
-let client;
 let databasePromise;
 let databaseStatus = "disconnected";
-
-async function createIndexes(database) {
-  await database.collection("notifications").createIndex({ id: 1 }, { unique: true });
-  await database.collection("notifications").createIndex({ createdAt: -1 });
-}
 
 async function connectToDatabase() {
   if (databasePromise) {
@@ -18,16 +12,14 @@ async function connectToDatabase() {
   const { mongoUri, mongoDbName } = getEnv();
 
   databaseStatus = "connecting";
-  client = new MongoClient(mongoUri);
 
-  databasePromise = client
-    .connect()
-    .then(async (connectedClient) => {
-      const database = connectedClient.db(mongoDbName);
-      await createIndexes(database);
-      await database.command({ ping: 1 });
+  databasePromise = mongoose
+    .connect(mongoUri, {
+      dbName: mongoDbName
+    })
+    .then((connection) => {
       databaseStatus = "connected";
-      return database;
+      return connection.connection;
     })
     .catch((error) => {
       databaseStatus = "error";
@@ -39,12 +31,13 @@ async function connectToDatabase() {
 }
 
 async function closeDatabaseConnection() {
-  if (!client) {
+  if (mongoose.connection.readyState === 0) {
+    databasePromise = undefined;
+    databaseStatus = "disconnected";
     return;
   }
 
-  await client.close();
-  client = undefined;
+  await mongoose.disconnect();
   databasePromise = undefined;
   databaseStatus = "disconnected";
 }
