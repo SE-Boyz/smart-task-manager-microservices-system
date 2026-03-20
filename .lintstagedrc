@@ -1,0 +1,22 @@
+{
+  "api-gateway/**/*.{js,json}": [
+    "npm run lint --prefix api-gateway",
+    "npm test --prefix api-gateway -- --findRelatedTests"
+  ],
+  "auth-service/**/*.{js,json}": [
+    "npm run lint --prefix auth-service",
+    "npm test --prefix auth-service -- --findRelatedTests"
+  ],
+  "notification-service/**/*.{js,json}": [
+    "npm run lint --prefix notification-service",
+    "npm test --prefix notification-service -- --findRelatedTests"
+  ],
+  "report-service/**/*.{js,json}": [
+    "npm run lint --prefix report-service",
+    "npm test --prefix report-service -- --findRelatedTests"
+  ],
+  "task-service/**/*.{js,json}": [
+    "npm run lint --prefix task-service",
+    "npm test --prefix task-service -- --findRelatedTests"
+  ]
+}
