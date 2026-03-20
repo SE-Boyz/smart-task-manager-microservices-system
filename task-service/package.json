@@ -2,10 +2,11 @@
   "name": "task-service",
   "version": "1.0.0",
   "description": "Task microservice for Smart Task Manager",
-  "main": "src/server.js",
+  "type": "module",
+  "main": "src/server.ts",
   "scripts": {
-    "start": "node src/server.js",
-    "dev": "nodemon src/server.js",
+    "start": "tsx src/server.ts",
+    "dev": "tsx watch src/server.ts",
     "lint": "eslint .",
     "test": "jest"
   },
@@ -23,6 +24,13 @@
     "uuid": "^11.1.0"
   },
   "devDependencies": {
-    "nodemon": "^3.1.9"
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.1",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/node": "^24.5.2",
+    "@types/swagger-jsdoc": "^6.0.4",
+    "@types/swagger-ui-express": "^4.1.8",
+    "tsx": "^4.20.5",
+    "typescript": "^5.9.2"
   }
 }
