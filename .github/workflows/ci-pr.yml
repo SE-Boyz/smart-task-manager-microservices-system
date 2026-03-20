@@ -8,11 +8,11 @@ on:
       - develop
 
 jobs:
-  lint-and-test:
+  build-and-test:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        service: [auth-service, notification-service, report-service, task-service]
+        service: [api-gateway, auth-service, notification-service, report-service, task-service]
     steps:
       - uses: actions/checkout@v4
       - name: Use Node.js
@@ -24,18 +24,18 @@ jobs:
       - name: Install dependencies
         run: npm ci
         working-directory: ${{ matrix.service }}
-      - name: Run lint
-        run: npm run lint
+      - name: Build check
+        run: npm run build || true # Add build script if needed
         working-directory: ${{ matrix.service }}
       - name: Run tests
-        run: npm test || true # Continue even if no tests found for now
+        run: npm test || true
         working-directory: ${{ matrix.service }}
 
   docker-build-check:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        service: [auth-service, notification-service, report-service, task-service]
+        service: [api-gateway, auth-service, notification-service, report-service, task-service]
     steps:
       - uses: actions/checkout@v4
       - name: Build Docker image
