@@ -5,7 +5,7 @@
 This service handles:
 
 - receiving notifications from the Task Service
-- storing notification logs in a JSON file
+- storing notification logs in MongoDB
 - listing saved notifications
 
 ## Port
@@ -36,6 +36,8 @@ npm start
 
 ```env
 PORT=5003
+MONGODB_URI=mongodb+srv://tharindulakshita2001_db_user:your_db_password@cluster0.pjnypci.mongodb.net/?appName=Cluster0
+MONGODB_DB_NAME=notification_service_db
 ```
 
 ## Example Requests
