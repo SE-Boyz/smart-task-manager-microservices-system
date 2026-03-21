@@ -1,0 +1,13 @@
+{
+  "name": "smart-task-manager-microservices",
+  "version": "1.0.0",
+  "description": "Root project for Smart Task Manager microservices",
+  "scripts": {
+    "lint": "eslint .",
+    "check-all": "npm run lint && npm test --prefix api-gateway && npm test --prefix auth-service && npm test --prefix notification-service && npm test --prefix report-service && npm test --prefix task-service"
+  },
+  "devDependencies": {
+    "eslint": "^8.57.0",
+    "jest": "^29.7.0"
+  }
+}

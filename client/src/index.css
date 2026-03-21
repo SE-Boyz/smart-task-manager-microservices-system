@@ -1,0 +1,87 @@
+@import "tailwindcss";
+
+@theme {
+  --color-inverse-surface: #0b0f10;
+  --color-secondary: #5e5f65;
+  --color-on-background: #2a3439;
+  --color-surface: #f7f9fb;
+  --color-on-primary-fixed: #003c86;
+  --color-on-tertiary: #fcf7ff;
+  --color-on-tertiary-container: #47445f;
+  --color-tertiary-container: #d3ceef;
+  --color-error-dim: #4e0309;
+  --color-tertiary-fixed: #d3ceef;
+  --color-inverse-on-surface: #9a9d9f;
+  --color-on-secondary: #f9f8ff;
+  --color-tertiary-fixed-dim: #c5c0e0;
+  --color-primary: #3b82f6;
+  --color-secondary-fixed-dim: #d4d4db;
+  --color-outline-variant: #a9b4b9;
+  --color-primary-container: #d8e2ff;
+  --color-surface-container-lowest: #ffffff;
+  --color-on-secondary-fixed: #3e3f45;
+  --color-on-secondary-fixed-variant: #5a5b61;
+  --color-surface-bright: #f7f9fb;
+  --color-tertiary-dim: #53506b;
+  --color-outline: #717c82;
+  --color-secondary-dim: #515359;
+  --color-on-primary: #ffffff;
+  --color-on-tertiary-fixed: #34314b;
+  --color-surface-variant: #d9e4ea;
+  --color-on-surface: #2a3439;
+  --color-secondary-fixed: #e2e2e9;
+  --color-surface-tint: #3b82f6;
+  --color-error-container: #fe8983;
+  --color-surface-container-highest: #d9e4ea;
+  --color-tertiary: #5f5c78;
+  --color-on-error-container: #752121;
+  --color-primary-fixed: #d8e2ff;
+  --color-surface-container: #e8eff3;
+  --color-primary-dim: #2563eb;
+  --color-inverse-primary: #4d8eff;
+  --color-on-secondary-container: #505157;
+  --color-on-primary-fixed-variant: #0057bd;
+  --color-primary-fixed-dim: #c3d4ff;
+  --color-surface-container-low: #f0f4f7;
+  --color-surface-container-high: #e1e9ee;
+  --color-error: #9f403d;
+  --color-on-error: #fff7f6;
+  --color-background: #f7f9fb;
+
+  --font-headline: "Inter", sans-serif;
+  --font-body: "Inter", sans-serif;
+  --font-label: "Inter", sans-serif;
+
+  --radius-lg: 2rem;
+  --radius-xl: 3rem;
+  --radius-DEFAULT: 1.5rem;
+}
+
+.material-symbols-outlined {
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+}
+
+.vibrant-gradient-bg {
+    background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #c084fc 100%);
+}
+
+.auth-mesh {
+    background: radial-gradient(circle at top left, #a5b4fc, transparent),
+                radial-gradient(circle at top right, #c084fc, transparent),
+                radial-gradient(circle at bottom left, #1e3a8a, transparent),
+                radial-gradient(circle at center, #3b82f6, transparent);
+    background-color: #3b82f6;
+}
+
+.primary-gradient {
+    background: linear-gradient(135deg, #005ac2 0%, #004fab 100%);
+}
+
+.glass-panel {
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(20px);
+}

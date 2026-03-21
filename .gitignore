@@ -59,3 +59,4 @@ junit.xml
 !**/docker-compose.yml
 !**/.dockerignore
 /smart-task-manager/auth-service/node_modules
+package-lock.json
