@@ -86,12 +86,12 @@ Handles:
 
 - `api-gateway` accepts client requests and forwards them to the correct downstream service.
 - `auth-service` creates JWT tokens after login.
-- `task-service` validates those JWT tokens before allowing task operations.
+- `task-service` validates those JWT tokens locally with the auth public key before allowing task operations.
 - `task-service` handles synchronous task CRUD over HTTP because the caller needs an immediate response.
 - `task-service` publishes task lifecycle events to RabbitMQ after writes succeed.
 - `notification-service` consumes those events and stores notification logs.
 - `report-service` consumes the same task events and maintains its own local projection for reporting queries.
-- `auth-service` and `task-service` share the same `JWT_SECRET` environment variable so authentication works consistently.
+- `auth-service` signs tokens with `JWT_PRIVATE_KEY`, while downstream services verify them with `JWT_PUBLIC_KEY`.
 - each service uses the same MongoDB Atlas cluster URI but a different `MONGODB_DB_NAME`.
 
 ## Ports Table

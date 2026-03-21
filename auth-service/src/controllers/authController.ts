@@ -2,6 +2,7 @@ import bcrypt from 'bcrypt'
 import type { NextFunction, Request, Response } from 'express'
 import jwt from 'jsonwebtoken'
 import { v4 as uuidv4 } from 'uuid'
+import { getEnv } from '../config/env.js'
 import type { AuthenticatedRequest } from '../types/auth.js'
 import { createUser, findUserByEmail, findUserById } from '../models/userModel.js'
 
@@ -38,6 +39,7 @@ export async function register(req: Request, res: Response, next: NextFunction) 
 
 export async function login(req: Request, res: Response, next: NextFunction) {
   try {
+    const { jwtPrivateKey } = getEnv()
     const { email, password } = req.body as {
       email: string
       password: string
@@ -61,8 +63,11 @@ export async function login(req: Request, res: Response, next: NextFunction) {
         name: user.name,
         email: user.email,
       },
-      process.env.JWT_SECRET as string,
-      { expiresIn: '1h' },
+      jwtPrivateKey,
+      {
+        algorithm: 'RS256',
+        expiresIn: '1h',
+      },
     )
 
     return res.status(200).json({
