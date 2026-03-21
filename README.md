@@ -1,6 +1,7 @@
 ﻿# Smart Task Manager Microservices System
 
 This project is a beginner-friendly microservices assignment built with Node.js and Express. It now contains four backend microservices plus an API gateway, with each service owning an independent MongoDB database.
+RabbitMQ is used for asynchronous task events between services.
 
 ## Project Overview
 
@@ -8,6 +9,7 @@ The goal of this project is to demonstrate:
 
 - basic microservices architecture
 - service-to-service communication
+- event-driven messaging with RabbitMQ
 - JWT-based authentication
 - practical security basics for backend services
 - Swagger/OpenAPI documentation
@@ -85,6 +87,8 @@ Handles:
 - `auth-service` creates JWT tokens after login.
 - `task-service` validates those JWT tokens before allowing task operations.
 - `task-service` sends a notification to `notification-service` when a task is created or updated.
+- `task-service` publishes task lifecycle events to RabbitMQ after writes succeed.
+- `notification-service` consumes those events and stores notification logs.
 - `report-service` requests task data from `task-service`, calculates summary counts, and stores summary snapshots in its own database.
 - `auth-service`, `task-service`, and `report-service` share the same `JWT_SECRET` environment variable so authentication works consistently.
 - each service uses the same MongoDB Atlas cluster URI but a different `MONGODB_DB_NAME`.
@@ -103,11 +107,12 @@ Handles:
 
 Start the services in this order:
 
-1. `notification-service`
-2. `task-service`
-3. `auth-service`
-4. `report-service`
-5. `api-gateway`
+1. `rabbitmq`
+2. `notification-service`
+3. `task-service`
+4. `auth-service`
+5. `report-service`
+6. `api-gateway`
 
 ## How To Run Locally
 

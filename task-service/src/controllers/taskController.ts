@@ -1,8 +1,8 @@
-import axios from 'axios'
 import type { NextFunction, Request, Response } from 'express'
 import { v4 as uuidv4 } from 'uuid'
-import { getEnv } from '../config/env.js'
+import { publishTaskEvent } from '../config/broker.js'
 import type { AuthenticatedRequest } from '../types/auth.js'
+import type { TaskEvent, TaskEventType } from '../types/taskEvent.js'
 import {
   createTask as createTaskRecord,
   deleteTaskById,
@@ -14,13 +14,22 @@ import {
   updateTaskById,
 } from '../models/taskModel.js'
 
-async function sendNotification(message: string) {
+async function publishEvent(eventType: TaskEventType, task: TaskRecord) {
+  const taskEvent: TaskEvent = {
+    eventId: uuidv4(),
+    eventType,
+    occurredAt: new Date().toISOString(),
+    taskId: task.id,
+    userId: task.userId,
+    title: task.title,
+    status: task.status,
+  }
+
   try {
-    const { notificationServiceUrl } = getEnv()
-    await axios.post(`${notificationServiceUrl}/notify`, { message })
+    await publishTaskEvent(taskEvent)
   } catch (error: unknown) {
     const messageText = error instanceof Error ? error.message : 'Unknown error'
-    console.error('Failed to send notification:', messageText)
+    console.error(`Failed to publish ${eventType} event:`, messageText)
   }
 }
 
@@ -56,7 +65,7 @@ export async function createTask(req: Request, res: Response, next: NextFunction
     }
 
     await createTaskRecord(newTask)
-    await sendNotification(`Task created: ${newTask.title}`)
+    await publishEvent('task.created', newTask)
 
     return res.status(201).json({
       message: 'Task created successfully',
@@ -93,7 +102,7 @@ export async function updateTask(req: Request, res: Response, next: NextFunction
     }
 
     await updateTaskById(id, updatedTask)
-    await sendNotification(`Task updated: ${updatedTask.title}`)
+    await publishEvent('task.updated', updatedTask)
 
     return res.status(200).json({
       message: 'Task updated successfully',
@@ -122,6 +131,7 @@ export async function deleteTask(req: Request, res: Response, next: NextFunction
     }
 
     await deleteTaskById(id)
+    await publishEvent('task.deleted', existingTask)
 
     return res.status(200).json({
       message: 'Task deleted successfully',
