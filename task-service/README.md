@@ -8,7 +8,7 @@ This service handles:
 - listing tasks
 - updating tasks
 - deleting tasks
-- sending notifications to the Notification Service
+- publishing task lifecycle events to RabbitMQ
 - persisting tasks in MongoDB
 
 All routes in this service require a valid JWT token.
@@ -44,7 +44,8 @@ npm start
 ```env
 PORT=5002
 JWT_SECRET=your_jwt_secret
-NOTIFICATION_SERVICE_URL=http://localhost:5003
+RABBITMQ_URL=amqp://localhost:5672
+TASK_EVENTS_EXCHANGE=task.events
 MONGODB_URI=mongodb+srv://tharindulakshita2001_db_user:your_db_password@cluster0.pjnypci.mongodb.net/?appName=Cluster0
 MONGODB_DB_NAME=task_service_db
 ```

@@ -24,7 +24,8 @@ function getMongoUri(): string {
 export interface TaskServiceEnv {
   port: number
   jwtSecret: string
-  notificationServiceUrl: string
+  rabbitMqUrl: string
+  taskEventsExchange: string
   mongoUri: string
   mongoDbName: string
 }
@@ -33,7 +34,8 @@ export function getEnv(): TaskServiceEnv {
   return {
     port: Number(process.env.PORT || DEFAULT_PORT),
     jwtSecret: getRequiredEnvVar('JWT_SECRET'),
-    notificationServiceUrl: getRequiredEnvVar('NOTIFICATION_SERVICE_URL'),
+    rabbitMqUrl: getRequiredEnvVar('RABBITMQ_URL'),
+    taskEventsExchange: process.env.TASK_EVENTS_EXCHANGE || 'task.events',
     mongoUri: getMongoUri(),
     mongoDbName: process.env.MONGODB_DB_NAME || DEFAULT_DB_NAME,
   }

@@ -1,4 +1,16 @@
 services:
+  rabbitmq:
+    image: rabbitmq:4-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    healthcheck:
+      test: [ "CMD", "rabbitmq-diagnostics", "-q", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+
   auth-service:
     image: auth-service:latest
     build: ./auth-service
@@ -12,6 +24,11 @@ services:
     ports:
       - "5002:5002"
     env_file: ./task-service/.env
+    environment:
+      - RABBITMQ_URL=amqp://rabbitmq:5672
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
 
   notification-service:
     image: notification-service:latest
@@ -19,6 +36,11 @@ services:
     ports:
       - "5003:5003"
     env_file: ./notification-service/.env
+    environment:
+      - RABBITMQ_URL=amqp://rabbitmq:5672
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
 
   report-service:
     image: report-service:latest
@@ -46,6 +68,6 @@ services:
       args:
         - VITE_API_BASE_URL=http://localhost:5000
     ports:
-      - "3000:80"
+      - "8080:80"
     depends_on:
       - api-gateway

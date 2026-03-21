@@ -23,6 +23,11 @@ function getMongoUri(): string {
 
 export interface NotificationServiceEnv {
   port: number
+  rabbitMqUrl: string
+  taskEventsExchange: string
+  taskEventsQueue: string
+  taskEventsDeadLetterExchange: string
+  taskEventsDeadLetterQueue: string
   mongoUri: string
   mongoDbName: string
 }
@@ -30,6 +35,13 @@ export interface NotificationServiceEnv {
 export function getEnv(): NotificationServiceEnv {
   return {
     port: Number(process.env.PORT || DEFAULT_PORT),
+    rabbitMqUrl: getRequiredEnvVar('RABBITMQ_URL'),
+    taskEventsExchange: process.env.TASK_EVENTS_EXCHANGE || 'task.events',
+    taskEventsQueue: process.env.TASK_EVENTS_QUEUE || 'notification-service.task-events',
+    taskEventsDeadLetterExchange:
+      process.env.TASK_EVENTS_DEAD_LETTER_EXCHANGE || 'task.events.dlx',
+    taskEventsDeadLetterQueue:
+      process.env.TASK_EVENTS_DEAD_LETTER_QUEUE || 'notification-service.task-events.dlq',
     mongoUri: getMongoUri(),
     mongoDbName: process.env.MONGODB_DB_NAME || DEFAULT_DB_NAME,
   }
