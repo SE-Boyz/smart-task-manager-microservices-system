@@ -35,3 +35,7 @@ jobs:
         cd $SERVICE_NAME
         docker build -t $ECR_REGISTRY/$SERVICE_NAME:$IMAGE_TAG .
         docker push $ECR_REGISTRY/$SERVICE_NAME:$IMAGE_TAG
+
+    - name: Update ECS Service with new Image
+      run: |
+        aws ecs update-service --cluster smart-task-cluster --service ${{ matrix.service }} --force-new-deployment
