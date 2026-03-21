@@ -1,5 +1,10 @@
 import 'dotenv/config'
 import app from './app.js'
+import {
+  closeBrokerConnection,
+  connectToBroker,
+  startTaskEventConsumer,
+} from './config/broker.js'
 import { closeDatabaseConnection, connectToDatabase } from './config/database.js'
 import { getEnv } from './config/env.js'
 
@@ -10,6 +15,10 @@ async function startServer() {
 
   await connectToDatabase()
   console.log(`MongoDB connection established for Notification Service (${mongoDbName}).`)
+  console.log('Checking RabbitMQ connection for Notification Service...')
+  await connectToBroker()
+  await startTaskEventConsumer()
+  console.log('RabbitMQ connection established for Notification Service.')
 
   const server = app.listen(port, () => {
     console.log(`Notification Service running on http://localhost:${port}`)
@@ -18,6 +27,7 @@ async function startServer() {
   async function shutdown(signal: string) {
     console.log(`Received ${signal}. Shutting down Notification Service...`)
     server.close(async () => {
+      await closeBrokerConnection()
       await closeDatabaseConnection()
       process.exit(0)
     })

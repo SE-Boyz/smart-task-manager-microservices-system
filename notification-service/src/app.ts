@@ -2,6 +2,7 @@ import cors from 'cors'
 import express from 'express'
 import helmet from 'helmet'
 import swaggerUi from 'swagger-ui-express'
+import { getBrokerStatus } from './config/broker.js'
 import swaggerSpec from './config/swagger.js'
 import { getDatabaseStatus } from './config/database.js'
 import errorHandler from './middleware/errorHandler.js'
@@ -18,6 +19,7 @@ app.get('/health', (_req, res) => {
     service: 'notification-service',
     status: 'ok',
     database: getDatabaseStatus(),
+    broker: getBrokerStatus(),
   })
 })
 

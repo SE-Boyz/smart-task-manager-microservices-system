@@ -4,7 +4,7 @@
 
 This service handles:
 
-- receiving notifications from the Task Service
+- consuming task events from RabbitMQ
 - storing notification logs in MongoDB
 - listing saved notifications
 
@@ -36,6 +36,11 @@ npm start
 
 ```env
 PORT=5003
+RABBITMQ_URL=amqp://localhost:5672
+TASK_EVENTS_EXCHANGE=task.events
+TASK_EVENTS_QUEUE=notification-service.task-events
+TASK_EVENTS_DEAD_LETTER_EXCHANGE=task.events.dlx
+TASK_EVENTS_DEAD_LETTER_QUEUE=notification-service.task-events.dlq
 MONGODB_URI=mongodb+srv://tharindulakshita2001_db_user:your_db_password@cluster0.pjnypci.mongodb.net/?appName=Cluster0
 MONGODB_DB_NAME=notification_service_db
 ```

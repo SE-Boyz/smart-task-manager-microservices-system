@@ -1,5 +1,6 @@
 import 'dotenv/config'
 import app from './app.js'
+import { closeBrokerConnection, connectToBroker } from './config/broker.js'
 import { closeDatabaseConnection, connectToDatabase } from './config/database.js'
 import { getEnv } from './config/env.js'
 
@@ -10,6 +11,9 @@ async function startServer() {
 
   await connectToDatabase()
   console.log(`MongoDB connection established for Task Service (${mongoDbName}).`)
+  console.log('Checking RabbitMQ connection for Task Service...')
+  await connectToBroker()
+  console.log('RabbitMQ connection established for Task Service.')
 
   const server = app.listen(port, () => {
     console.log(`Task Service running on http://localhost:${port}`)
@@ -18,6 +22,7 @@ async function startServer() {
   async function shutdown(signal: string) {
     console.log(`Received ${signal}. Shutting down Task Service...`)
     server.close(async () => {
+      await closeBrokerConnection()
       await closeDatabaseConnection()
       process.exit(0)
     })
