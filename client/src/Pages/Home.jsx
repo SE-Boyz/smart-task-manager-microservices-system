@@ -3,7 +3,9 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext.jsx'
 import {
   ApiError,
+  clearNotifications,
   createTask,
+  deleteNotification,
   deleteTask,
   getNotifications,
   getSummary,
@@ -22,6 +24,10 @@ function formatDate(value) {
   }
 
   return new Date(value).toLocaleString()
+}
+
+function getErrorMessage(error, fallbackMessage) {
+  return error instanceof Error ? error.message : fallbackMessage
 }
 
 const Home = () => {
@@ -54,6 +60,16 @@ const Home = () => {
     navigate('/auth', { replace: true })
   }
 
+  const loadNotificationData = async () => {
+    try {
+      const notificationResponse = await getNotifications()
+      setNotifications(notificationResponse.notifications || [])
+    } catch (error) {
+      setNotifications([])
+      setPageError(getErrorMessage(error, 'Unable to load notifications right now.'))
+    }
+  }
+
   const loadDashboard = async () => {
     setPageError('')
     setIsLoading(true)
@@ -61,15 +77,33 @@ const Home = () => {
     try {
       await refreshProfile()
 
-      const [taskResponse, notificationResponse, summaryResponse] = await Promise.all([
+      const [taskResult, notificationResult, summaryResult] = await Promise.allSettled([
         getTasks(),
         getNotifications(),
         getSummary(),
       ])
 
-      setTasks(taskResponse.tasks || [])
-      setNotifications(notificationResponse.notifications || [])
-      setSummary(summaryResponse)
+      if (taskResult.status === 'rejected') {
+        throw taskResult.reason
+      }
+
+      setTasks(taskResult.value.tasks || [])
+
+      if (notificationResult.status === 'fulfilled') {
+        setNotifications(notificationResult.value.notifications || [])
+      } else {
+        setNotifications([])
+        setPageError(
+          getErrorMessage(notificationResult.reason, 'Unable to load notifications right now.'),
+        )
+      }
+
+      if (summaryResult.status === 'fulfilled') {
+        setSummary(summaryResult.value)
+      } else {
+        setSummary(null)
+        setPageError(getErrorMessage(summaryResult.reason, 'Unable to load summary data.'))
+      }
     } catch (error) {
       if (error instanceof ApiError && error.status === 401) {
         handleUnauthorized()
@@ -121,15 +155,33 @@ const Home = () => {
   }
 
   const refreshTaskData = async () => {
-    const [taskResponse, notificationResponse, summaryResponse] = await Promise.all([
+    setPageError('')
+
+    const [taskResult, notificationResult, summaryResult] = await Promise.allSettled([
       getTasks(),
       getNotifications(),
       getSummary(),
     ])
 
-    setTasks(taskResponse.tasks || [])
-    setNotifications(notificationResponse.notifications || [])
-    setSummary(summaryResponse)
+    if (taskResult.status === 'rejected') {
+      throw taskResult.reason
+    }
+
+    setTasks(taskResult.value.tasks || [])
+
+    if (notificationResult.status === 'fulfilled') {
+      setNotifications(notificationResult.value.notifications || [])
+    } else {
+      setNotifications([])
+      setPageError(getErrorMessage(notificationResult.reason, 'Unable to refresh notifications.'))
+    }
+
+    if (summaryResult.status === 'fulfilled') {
+      setSummary(summaryResult.value)
+    } else {
+      setSummary(null)
+      setPageError(getErrorMessage(summaryResult.reason, 'Unable to refresh summary data.'))
+    }
   }
 
   const handleTaskSubmit = async (event) => {
@@ -176,6 +228,42 @@ const Home = () => {
       }
 
       setPageError(error.message || 'Unable to delete the task.')
+    }
+  }
+
+  const handleDeleteNotification = async (notificationId) => {
+    setPageError('')
+    setSuccessMessage('')
+
+    try {
+      const response = await deleteNotification(notificationId)
+      setSuccessMessage(response.message)
+      await loadNotificationData()
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 401) {
+        handleUnauthorized()
+        return
+      }
+
+      setPageError(error.message || 'Unable to delete the notification.')
+    }
+  }
+
+  const handleClearNotifications = async () => {
+    setPageError('')
+    setSuccessMessage('')
+
+    try {
+      const response = await clearNotifications()
+      setSuccessMessage(response.message)
+      await loadNotificationData()
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 401) {
+        handleUnauthorized()
+        return
+      }
+
+      setPageError(error.message || 'Unable to clear notifications.')
     }
   }
 
@@ -378,23 +466,46 @@ const Home = () => {
 
           <aside className="space-y-8">
             <section className="rounded-[2rem] bg-white p-6 shadow-sm border border-slate-200/80">
-              <h2 className="text-xl font-black tracking-tight">Notifications</h2>
-              <p className="mt-1 text-sm text-secondary">
-                Loaded from `GET /notifications` through the gateway.
-              </p>
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <h2 className="text-xl font-black tracking-tight">Notifications</h2>
+                  <p className="mt-1 text-sm text-secondary">
+                    Loaded from `GET /notifications` through the gateway.
+                  </p>
+                </div>
+                <button
+                  className="rounded-2xl border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 disabled:opacity-50"
+                  disabled={notifications.length === 0}
+                  onClick={handleClearNotifications}
+                  type="button"
+                >
+                  Clear all
+                </button>
+              </div>
 
               <div className="mt-6 space-y-4">
                 {notifications.length === 0 ? (
                   <div className="rounded-[1.75rem] border border-dashed border-slate-300 px-5 py-8 text-center text-secondary">
-                    Notifications will appear here when tasks are created or updated.
+                    Notifications will appear here when tasks are created, updated, or deleted.
                   </div>
                 ) : (
                   notifications.map((notification) => (
                     <article className="rounded-[1.75rem] bg-slate-50 p-4" key={notification.id}>
-                      <p className="text-sm font-semibold text-on-surface">{notification.message}</p>
-                      <p className="mt-2 text-xs uppercase tracking-[0.2em] text-secondary">
-                        {formatDate(notification.createdAt)}
-                      </p>
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <p className="text-sm font-semibold text-on-surface">{notification.message}</p>
+                          <p className="mt-2 text-xs uppercase tracking-[0.2em] text-secondary">
+                            {formatDate(notification.createdAt)}
+                          </p>
+                        </div>
+                        <button
+                          className="rounded-2xl border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-700"
+                          onClick={() => handleDeleteNotification(notification.id)}
+                          type="button"
+                        >
+                          Remove
+                        </button>
+                      </div>
                     </article>
                   ))
                 )}
