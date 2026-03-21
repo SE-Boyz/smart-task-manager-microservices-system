@@ -12,7 +12,7 @@ async function startServer() {
   console.log(`MongoDB connection established for Auth Service (${mongoDbName}).`)
 
   const server = app.listen(port, () => {
-    console.log(`Autha Service running on http://localhost:${port}`)
+    console.log(`Auth Service running on http://localhost:${port}`)
   })
 
   async function shutdown(signal: string) {
