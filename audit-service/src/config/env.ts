@@ -1,5 +1,5 @@
-const DEFAULT_PORT = 5001
-const DEFAULT_DB_NAME = 'auth_service_db'
+const DEFAULT_PORT = 5005
+const DEFAULT_DB_NAME = 'audit_service_db'
 
 function getRequiredEnvVar(name: string): string {
   const value = process.env[name]
@@ -25,23 +25,29 @@ function getNormalizedKey(name: string): string {
   return getRequiredEnvVar(name).replace(/\\n/g, '\n')
 }
 
-export interface AuthServiceEnv {
+export interface AuditServiceEnv {
   port: number
-  jwtPrivateKey: string
   jwtPublicKey: string
   rabbitMqUrl: string
   userEventsExchange: string
+  userEventsQueue: string
+  userEventsDeadLetterExchange: string
+  userEventsDeadLetterQueue: string
   mongoUri: string
   mongoDbName: string
 }
 
-export function getEnv(): AuthServiceEnv {
+export function getEnv(): AuditServiceEnv {
   return {
     port: Number(process.env.PORT || DEFAULT_PORT),
-    jwtPrivateKey: getNormalizedKey('JWT_PRIVATE_KEY'),
     jwtPublicKey: getNormalizedKey('JWT_PUBLIC_KEY'),
     rabbitMqUrl: getRequiredEnvVar('RABBITMQ_URL'),
     userEventsExchange: process.env.USER_EVENTS_EXCHANGE || 'user.events',
+    userEventsQueue: process.env.USER_EVENTS_QUEUE || 'audit-service.user-events',
+    userEventsDeadLetterExchange:
+      process.env.USER_EVENTS_DEAD_LETTER_EXCHANGE || 'user.events.dlx',
+    userEventsDeadLetterQueue:
+      process.env.USER_EVENTS_DEAD_LETTER_QUEUE || 'audit-service.user-events.dlq',
     mongoUri: getMongoUri(),
     mongoDbName: process.env.MONGODB_DB_NAME || DEFAULT_DB_NAME,
   }

@@ -1,6 +1,10 @@
 import 'dotenv/config'
 import app from './app.js'
-import { closeBrokerConnection, connectToBroker } from './config/broker.js'
+import {
+  closeBrokerConnection,
+  connectToBroker,
+  startUserEventConsumer,
+} from './config/broker.js'
 import { closeDatabaseConnection, connectToDatabase } from './config/database.js'
 import { getEnv } from './config/env.js'
 
@@ -34,20 +38,21 @@ async function connectToBrokerWithRetry() {
 async function startServer() {
   const { port, mongoDbName } = getEnv()
 
-  console.log(`Checking MongoDB connection for Auth Service (${mongoDbName})...`)
+  console.log(`Checking MongoDB connection for Audit Service (${mongoDbName})...`)
 
   await connectToDatabase()
-  console.log(`MongoDB connection established for Auth Service (${mongoDbName}).`)
-  console.log('Checking RabbitMQ connection for Auth Service...')
+  console.log(`MongoDB connection established for Audit Service (${mongoDbName}).`)
+  console.log('Checking RabbitMQ connection for Audit Service...')
   await connectToBrokerWithRetry()
-  console.log('RabbitMQ connection established for Auth Service.')
+  await startUserEventConsumer()
+  console.log('RabbitMQ connection established for Audit Service.')
 
   const server = app.listen(port, () => {
-    console.log(`Autha Service running on http://localhost:${port}`)
+    console.log(`Audit Service running on http://localhost:${port}`)
   })
 
   async function shutdown(signal: string) {
-    console.log(`Received ${signal}. Shutting down Auth Service...`)
+    console.log(`Received ${signal}. Shutting down Audit Service...`)
     server.close(async () => {
       await closeBrokerConnection()
       await closeDatabaseConnection()
@@ -64,6 +69,6 @@ async function startServer() {
 }
 
 startServer().catch((error) => {
-  console.error('Failed to start Auth Service:', error)
+  console.error('Failed to start Audit Service:', error)
   process.exit(1)
 })
