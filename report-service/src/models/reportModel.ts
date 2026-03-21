@@ -1,4 +1,14 @@
 import mongoose from 'mongoose'
+import type { TaskEvent } from '../types/taskEvent.js'
+
+export interface ProjectedTaskRecord {
+  taskId: string
+  userId: string
+  title: string
+  status: 'pending' | 'completed'
+  createdAt: string
+  updatedAt: string
+}
 
 export interface ReportSummaryRecord {
   total: number
@@ -7,21 +17,34 @@ export interface ReportSummaryRecord {
   generatedAt: string
 }
 
-const reportSchema = new mongoose.Schema<ReportSummaryRecord>(
+const projectedTaskSchema = new mongoose.Schema<ProjectedTaskRecord>(
   {
-    total: {
-      type: Number,
+    taskId: {
+      type: String,
+      required: true,
+      unique: true,
+      index: true,
+    },
+    userId: {
+      type: String,
+      required: true,
+      index: true,
+    },
+    title: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    status: {
+      type: String,
+      required: true,
+      enum: ['pending', 'completed'],
+    },
+    createdAt: {
+      type: String,
       required: true,
     },
-    completed: {
-      type: Number,
-      required: true,
-    },
-    pending: {
-      type: Number,
-      required: true,
-    },
-    generatedAt: {
+    updatedAt: {
       type: String,
       required: true,
       index: true,
@@ -29,15 +52,64 @@ const reportSchema = new mongoose.Schema<ReportSummaryRecord>(
   },
   {
     versionKey: false,
-    collection: 'report_summaries',
+    collection: 'projected_tasks',
   },
 )
 
-const ReportSummary =
-  mongoose.models.ReportSummary ||
-  mongoose.model<ReportSummaryRecord>('ReportSummary', reportSchema)
+projectedTaskSchema.index({ status: 1 })
 
-export async function saveSummarySnapshot(summary: ReportSummaryRecord) {
-  const createdSummary = await ReportSummary.create(summary)
-  return createdSummary.toObject({ versionKey: false })
+const ProjectedTask =
+  mongoose.models.ProjectedTask ||
+  mongoose.model<ProjectedTaskRecord>('ProjectedTask', projectedTaskSchema)
+
+function createProjectedTaskRecord(taskEvent: TaskEvent): ProjectedTaskRecord {
+  return {
+    taskId: taskEvent.taskId,
+    userId: taskEvent.userId,
+    title: taskEvent.title,
+    status: taskEvent.status,
+    createdAt: taskEvent.occurredAt,
+    updatedAt: taskEvent.occurredAt,
+  }
+}
+
+export async function applyTaskEventToProjection(taskEvent: TaskEvent) {
+  if (taskEvent.eventType === 'task.deleted') {
+    await ProjectedTask.deleteOne({ taskId: taskEvent.taskId })
+    return
+  }
+
+  const existingTask = await ProjectedTask.findOne({ taskId: taskEvent.taskId })
+    .select('-_id')
+    .lean<ProjectedTaskRecord | null>()
+
+  const projectedTask = createProjectedTaskRecord(taskEvent)
+
+  await ProjectedTask.findOneAndUpdate(
+    { taskId: taskEvent.taskId },
+    {
+      ...projectedTask,
+      createdAt: existingTask?.createdAt || projectedTask.createdAt,
+    },
+    {
+      upsert: true,
+      returnDocument: 'after',
+      setDefaultsOnInsert: true,
+    },
+  )
+}
+
+export async function getSummarySnapshot(): Promise<ReportSummaryRecord> {
+  const [total, completed, pending] = await Promise.all([
+    ProjectedTask.countDocuments(),
+    ProjectedTask.countDocuments({ status: 'completed' }),
+    ProjectedTask.countDocuments({ status: 'pending' }),
+  ])
+
+  return {
+    total,
+    completed,
+    pending,
+    generatedAt: new Date().toISOString(),
+  }
 }

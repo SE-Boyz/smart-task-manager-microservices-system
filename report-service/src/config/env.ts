@@ -23,8 +23,11 @@ function getMongoUri(): string {
 
 export interface ReportServiceEnv {
   port: number
-  jwtSecret: string
-  taskServiceUrl: string
+  rabbitMqUrl: string
+  taskEventsExchange: string
+  taskEventsQueue: string
+  taskEventsDeadLetterExchange: string
+  taskEventsDeadLetterQueue: string
   mongoUri: string
   mongoDbName: string
 }
@@ -32,8 +35,13 @@ export interface ReportServiceEnv {
 export function getEnv(): ReportServiceEnv {
   return {
     port: Number(process.env.PORT || DEFAULT_PORT),
-    jwtSecret: getRequiredEnvVar('JWT_SECRET'),
-    taskServiceUrl: getRequiredEnvVar('TASK_SERVICE_URL'),
+    rabbitMqUrl: getRequiredEnvVar('RABBITMQ_URL'),
+    taskEventsExchange: process.env.TASK_EVENTS_EXCHANGE || 'task.events',
+    taskEventsQueue: process.env.TASK_EVENTS_QUEUE || 'report-service.task-events',
+    taskEventsDeadLetterExchange:
+      process.env.TASK_EVENTS_DEAD_LETTER_EXCHANGE || 'task.events.dlx',
+    taskEventsDeadLetterQueue:
+      process.env.TASK_EVENTS_DEAD_LETTER_QUEUE || 'report-service.task-events.dlq',
     mongoUri: getMongoUri(),
     mongoDbName: process.env.MONGODB_DB_NAME || DEFAULT_DB_NAME,
   }

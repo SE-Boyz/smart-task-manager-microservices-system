@@ -48,6 +48,11 @@ services:
     ports:
       - "5004:5004"
     env_file: ./report-service/.env
+    environment:
+      - RABBITMQ_URL=amqp://rabbitmq:5672
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
 
   api-gateway:
     image: api-gateway:latest
