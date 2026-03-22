@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        service: [auth-service, task-service, notification-service, report-service]
+        service: [api-gateway, auth-service, task-service, notification-service, report-service, audit-service]
 
     steps:
     - name: Checkout Code
