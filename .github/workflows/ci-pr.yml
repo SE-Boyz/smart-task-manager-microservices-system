@@ -1,11 +1,12 @@
 name: CI - Pull Request
 
 on:
+  push:
+    branches:
+      - develop
   pull_request:
     branches:
       - main
-      - staging
-      - develop
 
 jobs:
   setup-matrix:
