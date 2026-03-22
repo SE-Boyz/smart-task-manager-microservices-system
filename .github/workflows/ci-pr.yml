@@ -1,11 +1,12 @@
 name: CI - Pull Request
 
 on:
+  push:
+    branches:
+      - develop
   pull_request:
     branches:
       - main
-      - staging
-      - develop
 
 jobs:
   setup-matrix:
@@ -34,7 +35,10 @@ jobs:
           cache: 'npm'
           cache-dependency-path: ${{ matrix.service }}/package-lock.json
       - name: Install dependencies
-        run: npm ci
+        run: |
+          rm -f package-lock.json
+          npm cache clean --force
+          npm install
         working-directory: ${{ matrix.service }}
       - name: Build check
         run: npm run build || true
