@@ -1,7 +1,7 @@
 ﻿# Smart Task Manager Microservices System
 
 This project is a beginner-friendly microservices assignment built with Node.js and Express. It now contains five backend microservices plus an API gateway, with each service owning an independent MongoDB database.
-RabbitMQ is used for asynchronous task events between services where event-driven communication makes sense.
+RabbitMQ is used for asynchronous task events between services where event-driven communication makes sense
 
 ## Project Overview
 
