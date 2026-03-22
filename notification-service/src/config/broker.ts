@@ -56,6 +56,7 @@ async function persistTaskEventNotification(taskEvent: TaskEvent) {
   try {
     await createNotification({
       id: taskEvent.eventId,
+      userId: taskEvent.userId,
       message: buildNotificationMessage(taskEvent),
       createdAt: taskEvent.occurredAt,
     })

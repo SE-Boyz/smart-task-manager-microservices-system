@@ -43,7 +43,7 @@ npm start
 
 ```env
 PORT=5002
-JWT_SECRET=your_jwt_secret
+JWT_PUBLIC_KEY=-----BEGIN PUBLIC KEY-----\nreplace_with_your_rs256_public_key\n-----END PUBLIC KEY-----
 RABBITMQ_URL=amqp://localhost:5672
 TASK_EVENTS_EXCHANGE=task.events
 MONGODB_URI=mongodb+srv://tharindulakshita2001_db_user:your_db_password@cluster0.pjnypci.mongodb.net/?appName=Cluster0

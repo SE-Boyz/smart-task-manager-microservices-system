@@ -21,8 +21,13 @@ function getMongoUri(): string {
   return uri
 }
 
+function getNormalizedKey(name: string): string {
+  return getRequiredEnvVar(name).replace(/\\n/g, '\n')
+}
+
 export interface NotificationServiceEnv {
   port: number
+  jwtPublicKey: string
   rabbitMqUrl: string
   taskEventsExchange: string
   taskEventsQueue: string
@@ -35,6 +40,7 @@ export interface NotificationServiceEnv {
 export function getEnv(): NotificationServiceEnv {
   return {
     port: Number(process.env.PORT || DEFAULT_PORT),
+    jwtPublicKey: getNormalizedKey('JWT_PUBLIC_KEY'),
     rabbitMqUrl: getRequiredEnvVar('RABBITMQ_URL'),
     taskEventsExchange: process.env.TASK_EVENTS_EXCHANGE || 'task.events',
     taskEventsQueue: process.env.TASK_EVENTS_QUEUE || 'notification-service.task-events',

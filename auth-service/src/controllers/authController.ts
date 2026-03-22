@@ -2,8 +2,32 @@ import bcrypt from 'bcrypt'
 import type { NextFunction, Request, Response } from 'express'
 import jwt from 'jsonwebtoken'
 import { v4 as uuidv4 } from 'uuid'
+import { publishUserEvent } from '../config/broker.js'
+import { getEnv } from '../config/env.js'
 import type { AuthenticatedRequest } from '../types/auth.js'
+import type { UserEventType } from '../types/userEvent.js'
 import { createUser, findUserByEmail, findUserById } from '../models/userModel.js'
+
+async function publishEvent(
+  eventType: UserEventType,
+  user: { id: string; name: string; email: string },
+) {
+  const userEvent = {
+    eventId: uuidv4(),
+    eventType,
+    occurredAt: new Date().toISOString(),
+    userId: user.id,
+    name: user.name,
+    email: user.email,
+  }
+
+  try {
+    await publishUserEvent(userEvent)
+  } catch (error) {
+    const messageText = error instanceof Error ? error.message : 'Unknown error'
+    console.error(`Failed to publish ${eventType} event:`, messageText)
+  }
+}
 
 export async function register(req: Request, res: Response, next: NextFunction) {
   try {
@@ -20,12 +44,19 @@ export async function register(req: Request, res: Response, next: NextFunction) 
     }
 
     const hashedPassword = await bcrypt.hash(password, 10)
+    const userId = uuidv4()
 
     await createUser({
-      id: uuidv4(),
+      id: userId,
       name,
       email,
       password: hashedPassword,
+    })
+
+    await publishEvent('user.registered', {
+      id: userId,
+      name,
+      email,
     })
 
     return res.status(201).json({
@@ -38,6 +69,7 @@ export async function register(req: Request, res: Response, next: NextFunction) 
 
 export async function login(req: Request, res: Response, next: NextFunction) {
   try {
+    const { jwtPrivateKey } = getEnv()
     const { email, password } = req.body as {
       email: string
       password: string
@@ -61,9 +93,18 @@ export async function login(req: Request, res: Response, next: NextFunction) {
         name: user.name,
         email: user.email,
       },
-      process.env.JWT_SECRET as string,
-      { expiresIn: '1h' },
+      jwtPrivateKey,
+      {
+        algorithm: 'RS256',
+        expiresIn: '1h',
+      },
     )
+
+    await publishEvent('user.logged_in', {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+    })
 
     return res.status(200).json({
       message: 'Login successful',

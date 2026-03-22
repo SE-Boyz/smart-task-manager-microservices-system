@@ -101,8 +101,18 @@ export function deleteTask(id) {
 }
 
 export function getNotifications() {
+  return apiRequest('/notifications')
+}
+
+export function deleteNotification(id) {
+  return apiRequest(`/notifications/${id}`, {
+    method: 'DELETE',
+  })
+}
+
+export function clearNotifications() {
   return apiRequest('/notifications', {
-    token: null,
+    method: 'DELETE',
   })
 }
 
