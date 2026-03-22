@@ -21,9 +21,16 @@ function getMongoUri(): string {
   return uri
 }
 
+function getNormalizedKey(name: string): string {
+  return getRequiredEnvVar(name).replace(/\\n/g, '\n')
+}
+
 export interface AuthServiceEnv {
   port: number
-  jwtSecret: string
+  jwtPrivateKey: string
+  jwtPublicKey: string
+  rabbitMqUrl: string
+  userEventsExchange: string
   mongoUri: string
   mongoDbName: string
 }
@@ -31,7 +38,10 @@ export interface AuthServiceEnv {
 export function getEnv(): AuthServiceEnv {
   return {
     port: Number(process.env.PORT || DEFAULT_PORT),
-    jwtSecret: getRequiredEnvVar('JWT_SECRET'),
+    jwtPrivateKey: getNormalizedKey('JWT_PRIVATE_KEY'),
+    jwtPublicKey: getNormalizedKey('JWT_PUBLIC_KEY'),
+    rabbitMqUrl: getRequiredEnvVar('RABBITMQ_URL'),
+    userEventsExchange: process.env.USER_EVENTS_EXCHANGE || 'user.events',
     mongoUri: getMongoUri(),
     mongoDbName: process.env.MONGODB_DB_NAME || DEFAULT_DB_NAME,
   }

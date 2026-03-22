@@ -16,6 +16,7 @@ export interface GatewayEnv {
   taskServiceUrl: string
   notificationServiceUrl: string
   reportServiceUrl: string
+  auditServiceUrl: string
 }
 
 export function getEnv(): GatewayEnv {
@@ -25,5 +26,6 @@ export function getEnv(): GatewayEnv {
     taskServiceUrl: getRequiredEnvVar('TASK_SERVICE_URL'),
     notificationServiceUrl: getRequiredEnvVar('NOTIFICATION_SERVICE_URL'),
     reportServiceUrl: getRequiredEnvVar('REPORT_SERVICE_URL'),
+    auditServiceUrl: getRequiredEnvVar('AUDIT_SERVICE_URL'),
   }
 }

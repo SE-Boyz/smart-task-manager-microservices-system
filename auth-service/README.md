@@ -9,6 +9,7 @@ This service handles:
 - password hashing with `bcrypt`
 - JWT token generation
 - protected profile access
+- publishing user lifecycle events to RabbitMQ
 - persisting users in MongoDB
 
 ## Port
@@ -40,7 +41,10 @@ npm start
 
 ```env
 PORT=5001
-JWT_SECRET=your_jwt_secret
+JWT_PRIVATE_KEY=-----BEGIN PRIVATE KEY-----\nreplace_with_your_rs256_private_key\n-----END PRIVATE KEY-----
+JWT_PUBLIC_KEY=-----BEGIN PUBLIC KEY-----\nreplace_with_your_rs256_public_key\n-----END PUBLIC KEY-----
+RABBITMQ_URL=amqp://localhost:5672
+USER_EVENTS_EXCHANGE=user.events
 MONGODB_URI=mongodb+srv://tharindulakshita2001_db_user:your_db_password@cluster0.pjnypci.mongodb.net/?appName=Cluster0
 MONGODB_DB_NAME=auth_service_db
 ```

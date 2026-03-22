@@ -19,6 +19,7 @@ function resolveTarget(path: string): TargetResolution | null {
     taskServiceUrl,
     notificationServiceUrl,
     reportServiceUrl,
+    auditServiceUrl,
   } = getEnv()
 
   if (path === '/auth' || path.startsWith('/auth/')) {
@@ -46,6 +47,13 @@ function resolveTarget(path: string): TargetResolution | null {
     return {
       baseUrl: reportServiceUrl,
       path: path.replace(/^\/reports/, '') || '/',
+    }
+  }
+
+  if (path === '/audit-logs' || path.startsWith('/audit-logs/')) {
+    return {
+      baseUrl: auditServiceUrl,
+      path,
     }
   }
 

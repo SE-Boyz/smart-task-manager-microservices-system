@@ -1,7 +1,7 @@
 ﻿# Smart Task Manager Microservices System
 
-This project is a beginner-friendly microservices assignment built with Node.js and Express. It now contains four backend microservices plus an API gateway, with each service owning an independent MongoDB database.
-RabbitMQ is used for asynchronous task events between services.
+This project is a beginner-friendly microservices assignment built with Node.js and Express. It now contains five backend microservices plus an API gateway, with each service owning an independent MongoDB database.
+RabbitMQ is used for asynchronous task events between services where event-driven communication makes sense
 
 ## Project Overview
 
@@ -9,7 +9,7 @@ The goal of this project is to demonstrate:
 
 - basic microservices architecture
 - service-to-service communication
-- event-driven messaging with RabbitMQ
+- hybrid communication with HTTP plus event-driven messaging
 - JWT-based authentication
 - practical security basics for backend services
 - Swagger/OpenAPI documentation
@@ -26,6 +26,7 @@ This version is intentionally built for local development first. Each service co
 3. `task-service` on port `5002`
 4. `notification-service` on port `5003`
 5. `report-service` on port `5004`
+6. `audit-service` on port `5005`
 
 ## Architecture Explanation
 
@@ -38,6 +39,7 @@ Handles:
 - password hashing using `bcrypt`
 - JWT generation
 - protected profile access
+- publishing user lifecycle events to RabbitMQ
 - data storage in `auth_service_db`
 
 ### Task Service
@@ -48,7 +50,7 @@ Handles:
 - task listing
 - task update
 - task deletion
-- notifying the Notification Service when tasks are created or updated
+- publishing task lifecycle events after writes succeed
 - data storage in `task_service_db`
 
 All task routes are protected by JWT authentication.
@@ -57,7 +59,7 @@ All task routes are protected by JWT authentication.
 
 Handles:
 
-- receiving notification messages from the Task Service
+- consuming task lifecycle events from RabbitMQ
 - storing notification logs in MongoDB
 - listing saved notifications
 - data storage in `notification_service_db`
@@ -66,12 +68,22 @@ Handles:
 
 Handles:
 
-- fetching task data from the Task Service
-- calculating summary statistics
+- consuming task lifecycle events from RabbitMQ
+- maintaining a local task projection inside `report_service_db`
+- calculating summary statistics from that projection
 - returning total, completed, and pending task counts
-- persisting generated report snapshots in `report_service_db`
+- data storage in `report_service_db`
 
-The Report Service does not store task data.
+The Report Service does not call the Task Service for summary reads. It builds its own read model from events.
+
+### Audit Service
+
+Handles:
+
+- consuming auth lifecycle events from RabbitMQ
+- storing user registration and login audit logs in MongoDB
+- returning authenticated users their own audit history and summary
+- data storage in `audit_service_db`
 
 ### API Gateway
 
@@ -84,13 +96,14 @@ Handles:
 ## Service Communication Explanation
 
 - `api-gateway` accepts client requests and forwards them to the correct downstream service.
-- `auth-service` creates JWT tokens after login.
-- `task-service` validates those JWT tokens before allowing task operations.
-- `task-service` sends a notification to `notification-service` when a task is created or updated.
+- `auth-service` creates JWT tokens after login and publishes user lifecycle events.
+- `task-service` validates those JWT tokens locally with the auth public key before allowing task operations.
+- `task-service` handles synchronous task CRUD over HTTP because the caller needs an immediate response.
 - `task-service` publishes task lifecycle events to RabbitMQ after writes succeed.
 - `notification-service` consumes those events and stores notification logs.
-- `report-service` requests task data from `task-service`, calculates summary counts, and stores summary snapshots in its own database.
-- `auth-service`, `task-service`, and `report-service` share the same `JWT_SECRET` environment variable so authentication works consistently.
+- `report-service` consumes the same task events and maintains its own local projection for reporting queries.
+- `audit-service` consumes auth events and stores a user-level audit trail.
+- `auth-service` signs tokens with `JWT_PRIVATE_KEY`, while downstream services verify them with `JWT_PUBLIC_KEY`.
 - each service uses the same MongoDB Atlas cluster URI but a different `MONGODB_DB_NAME`.
 
 ## Ports Table
@@ -102,17 +115,19 @@ Handles:
 | Task Service | 5002 | Task CRUD |
 | Notification Service | 5003 | Notification logs |
 | Report Service | 5004 | Task summary |
+| Audit Service | 5005 | Auth event audit trail |
 
 ## Local Running Order
 
 Start the services in this order:
 
 1. `rabbitmq`
-2. `notification-service`
-3. `task-service`
-4. `auth-service`
-5. `report-service`
-6. `api-gateway`
+2. `task-service`
+3. `notification-service`
+4. `report-service`
+5. `auth-service`
+6. `audit-service`
+7. `api-gateway`
 
 ## How To Run Locally
 
@@ -166,8 +181,9 @@ You can also run `npm start` instead of `npm run dev`.
 2. Register a user using the API gateway.
 3. Login and copy the returned JWT token.
 4. Create a task using the API gateway and the JWT token.
-5. Check notifications through the API gateway.
-6. Call reports through the API gateway to get task summary statistics.
+5. Check notifications through the API gateway after the async consumer processes the event.
+6. Check audit logs through the API gateway after login or registration events are consumed.
+7. Call reports through the API gateway to get summary statistics built from the report projection.
 
 ## Sample Postman Test Sequence
 
@@ -221,6 +237,13 @@ GET http://localhost:5000/notifications
 GET http://localhost:5000/reports/summary
 ```
 
+### 6. Get audit logs
+
+```http
+GET http://localhost:5000/audit-logs
+Authorization: Bearer YOUR_TOKEN
+```
+
 ## Swagger Documentation
 
 Each service exposes Swagger UI at `/api-docs`:
@@ -229,6 +252,7 @@ Each service exposes Swagger UI at `/api-docs`:
 - `http://localhost:5002/api-docs`
 - `http://localhost:5003/api-docs`
 - `http://localhost:5004/api-docs`
+- `http://localhost:5005/api-docs`
 
 The gateway exposes a health check at `http://localhost:5000/health`.
 
@@ -241,6 +265,15 @@ Each service includes:
 - `.env.example`
 
 This makes the project easy to containerize later.
+
+## Practical Architecture Notes
+
+- External client traffic stays on HTTP through the API gateway.
+- Internal synchronous calls stay on HTTP only where the caller needs an immediate answer, such as gateway to auth/task/report/notification reads.
+- Internal asynchronous fan-out uses RabbitMQ for task lifecycle events.
+- `auth-service` and `audit-service` now form a second event-driven integration, so the authentication domain is no longer isolated.
+- `notification-service` and `report-service` are intentionally event-driven consumers so they stay decoupled from `task-service`.
+- The reporting tradeoff is eventual consistency: a new task may appear in the report summary a moment after the write succeeds.
 
 ## Future Deployment Note
 

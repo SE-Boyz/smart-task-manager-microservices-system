@@ -1,5 +1,6 @@
 import type { RequestHandler } from 'express'
 import jwt from 'jsonwebtoken'
+import { getEnv } from '../config/env.js'
 import type { AuthenticatedRequest, AuthTokenPayload } from '../types/auth.js'
 
 const authMiddleware: RequestHandler = (req, res, next) => {
@@ -12,9 +13,14 @@ const authMiddleware: RequestHandler = (req, res, next) => {
   const token = authHeader.split(' ')[1]
 
   try {
+    const { jwtPublicKey } = getEnv()
+
     ;(req as AuthenticatedRequest).user = jwt.verify(
       token,
-      process.env.JWT_SECRET as string,
+      jwtPublicKey,
+      {
+        algorithms: ['RS256'],
+      },
     ) as AuthTokenPayload
     return next()
   } catch {

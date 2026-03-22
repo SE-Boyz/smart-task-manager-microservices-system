@@ -17,6 +17,11 @@ services:
     ports:
       - "5001:5001"
     env_file: ./auth-service/.env
+    environment:
+      - RABBITMQ_URL=amqp://rabbitmq:5672
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
 
   task-service:
     image: task-service:latest
@@ -48,6 +53,23 @@ services:
     ports:
       - "5004:5004"
     env_file: ./report-service/.env
+    environment:
+      - RABBITMQ_URL=amqp://rabbitmq:5672
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+  audit-service:
+    image: audit-service:latest
+    build: ./audit-service
+    ports:
+      - "5005:5005"
+    env_file: ./audit-service/.env
+    environment:
+      - RABBITMQ_URL=amqp://rabbitmq:5672
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
 
   api-gateway:
     image: api-gateway:latest
@@ -60,6 +82,7 @@ services:
       - task-service
       - notification-service
       - report-service
+      - audit-service
 
   client:
     image: client:latest

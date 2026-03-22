@@ -1,7 +1,35 @@
 import 'dotenv/config'
 import app from './app.js'
+import { closeBrokerConnection, connectToBroker } from './config/broker.js'
 import { closeDatabaseConnection, connectToDatabase } from './config/database.js'
 import { getEnv } from './config/env.js'
+
+const BROKER_CONNECT_RETRIES = 12
+const BROKER_RETRY_DELAY_MS = 5000
+
+function wait(delayMs: number) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, delayMs)
+  })
+}
+
+async function connectToBrokerWithRetry() {
+  for (let attempt = 1; attempt <= BROKER_CONNECT_RETRIES; attempt += 1) {
+    try {
+      await connectToBroker()
+      return
+    } catch (error) {
+      if (attempt === BROKER_CONNECT_RETRIES) {
+        throw error
+      }
+
+      console.warn(
+        `RabbitMQ connection attempt ${attempt} failed. Retrying in ${BROKER_RETRY_DELAY_MS / 1000}s...`,
+      )
+      await wait(BROKER_RETRY_DELAY_MS)
+    }
+  }
+}
 
 async function startServer() {
   const { port, mongoDbName } = getEnv()
@@ -10,6 +38,9 @@ async function startServer() {
 
   await connectToDatabase()
   console.log(`MongoDB connection established for Auth Service (${mongoDbName}).`)
+  console.log('Checking RabbitMQ connection for Auth Service...')
+  await connectToBrokerWithRetry()
+  console.log('RabbitMQ connection established for Auth Service.')
 
   const server = app.listen(port, () => {
     console.log(`Auth Service running on http://localhost:${port}`)
@@ -18,6 +49,7 @@ async function startServer() {
   async function shutdown(signal: string) {
     console.log(`Received ${signal}. Shutting down Auth Service...`)
     server.close(async () => {
+      await closeBrokerConnection()
       await closeDatabaseConnection()
       process.exit(0)
     })
