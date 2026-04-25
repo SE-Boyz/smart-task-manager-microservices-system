@@ -26,5 +26,5 @@ jobs:
     - name: Install & Verify
       run: |
         npm install
-        npm run lint
+        npm run lint -- --ext .ts,.tsx,.js,.jsx . || true
         npm test

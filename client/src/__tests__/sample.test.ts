@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 
-describe('Client Frontend Smoke Test', () => {
-  it('should pass a basic smoke test', () => {
+describe('Client Smoke Test', () => {
+  it('should pass', () => {
     expect(true).toBe(true);
   });
 });
