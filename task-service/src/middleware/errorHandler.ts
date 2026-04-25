@@ -5,8 +5,10 @@ interface MongoLikeError extends Error {
   statusCode?: number
 }
 
-const errorHandler: ErrorRequestHandler = (err: MongoLikeError, _req, res, _next) => {
-  console.error(err)
+const errorHandler: ErrorRequestHandler = (err: MongoLikeError, req, res, _next) => {
+  console.error(`[Task Service] ERROR at ${req.method} ${req.path}:`)
+  console.error(`Message: ${err.message}`)
+  console.error(`Stack: ${err.stack}`)
 
   if (err.code === 11000) {
     return res.status(409).json({
@@ -24,7 +26,7 @@ const errorHandler: ErrorRequestHandler = (err: MongoLikeError, _req, res, _next
   const message = err.message || 'Internal server error'
 
   return res.status(statusCode).json({
-    message: statusCode === 500 ? 'Something went wrong' : message,
+    message: statusCode === 500 ? `Something went wrong: ${message}` : message,
   })
 }
 

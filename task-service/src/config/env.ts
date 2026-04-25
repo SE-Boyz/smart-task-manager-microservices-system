@@ -22,7 +22,12 @@ function getMongoUri(): string {
 }
 
 function getNormalizedKey(name: string): string {
-  return getRequiredEnvVar(name).replace(/\\n/g, '\n')
+  const key = getRequiredEnvVar(name)
+  const normalized = key.replace(/\\n/g, '\n').replace(/\r/g, '').trim()
+  console.log(`[Debug] Key '${name}' length: ${normalized.length}`)
+  console.log(`[Debug] Key '${name}' starts with: ${normalized.substring(0, 20)}...`)
+  console.log(`[Debug] Key '${name}' ends with: ...${normalized.substring(normalized.length - 20)}`)
+  return normalized
 }
 
 export interface TaskServiceEnv {

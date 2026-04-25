@@ -39,7 +39,7 @@ function resolveTarget(path: string): TargetResolution | null {
   if (path === '/notifications' || path.startsWith('/notifications/')) {
     return {
       baseUrl: notificationServiceUrl,
-      path: path.replace(/^\/notifications\/notify$/, '/notify'),
+      path,
     }
   }
 
@@ -53,7 +53,7 @@ function resolveTarget(path: string): TargetResolution | null {
   if (path === '/audit-logs' || path.startsWith('/audit-logs/')) {
     return {
       baseUrl: auditServiceUrl,
-      path,
+      path: path.replace(/^\/audit-logs/, '') || '/',
     }
   }
 
@@ -70,6 +70,7 @@ export async function proxyRequest(req: Request, res: Response, next: NextFuncti
   }
 
   try {
+    console.log(`[Gateway] Proxying to: ${target.baseUrl}${target.path}`)
     const response = await axios({
       method: req.method,
       url: `${target.baseUrl}${target.path}`,
@@ -81,6 +82,7 @@ export async function proxyRequest(req: Request, res: Response, next: NextFuncti
       },
       validateStatus: () => true,
     })
+    console.log(`[Gateway] Downstream response: ${response.status}`)
 
     Object.entries(response.headers).forEach(([header, value]) => {
       if (!HOP_BY_HOP_RESPONSE_HEADERS.has(header.toLowerCase()) && value !== undefined) {

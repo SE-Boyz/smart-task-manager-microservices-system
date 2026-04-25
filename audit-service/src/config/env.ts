@@ -22,7 +22,8 @@ function getMongoUri(): string {
 }
 
 function getNormalizedKey(name: string): string {
-  return getRequiredEnvVar(name).replace(/\\n/g, '\n')
+  const key = getRequiredEnvVar(name)
+  return key.replace(/\\n/g, '\n').replace(/\r/g, '').trim()
 }
 
 export interface AuditServiceEnv {
