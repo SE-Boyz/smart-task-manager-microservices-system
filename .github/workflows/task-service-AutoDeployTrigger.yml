@@ -1,0 +1,49 @@
+name: Trigger auto deployment for task-service
+
+# When this action will be executed
+on:
+  # Automatically trigger it when detected changes in repo
+  push:
+    branches: 
+      [ config/azure-cicd ]
+    paths:
+    - '**'
+    - '.github/workflows/task-service-AutoDeployTrigger-a354f4c7-3e64-4bb8-be7f-68b96bfede1c.yml'
+
+  # Allow manual trigger 
+  workflow_dispatch:      
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    permissions: 
+      id-token: write #This is required for requesting the OIDC JWT Token
+      contents: read #Required when GH token is used to authenticate with private repo
+
+    steps:
+      - name: Checkout to the branch
+        uses: actions/checkout@v2
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.TASKSERVICE_AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.TASKSERVICE_AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.TASKSERVICE_AZURE_SUBSCRIPTION_ID }}
+
+      - name: Build and push container image to registry
+        uses: azure/container-apps-deploy-action@v2
+        with:
+          appSourcePath: ${{ github.workspace }}/task-service
+          dockerfilePath: Dockerfile
+          
+          registryUrl: acrsmarttaskmanagersea.azurecr.io
+          registryUsername: ${{ secrets.TASKSERVICE_REGISTRY_USERNAME }}
+          registryPassword: ${{ secrets.TASKSERVICE_REGISTRY_PASSWORD }}
+          containerAppName: task-service
+          resourceGroup: rg-smart-task-manager-sea
+          imageToBuild: acrsmarttaskmanagersea.azurecr.io/task-service:${{ github.sha }}
+          
+            
+
+
