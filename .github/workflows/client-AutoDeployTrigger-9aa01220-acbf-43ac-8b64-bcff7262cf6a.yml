@@ -34,16 +34,14 @@ jobs:
       - name: Build and push container image to registry
         uses: azure/container-apps-deploy-action@v2
         with:
-          appSourcePath: ${{ github.workspace }}
-          _dockerfilePathKey_: _dockerfilePath_
-          _targetLabelKey_: _targetLabel_
+          appSourcePath: ${{ github.workspace }}/client
+          dockerfilePath: Dockerfile
           registryUrl: acrsmarttaskmanagersea.azurecr.io
           registryUsername: ${{ secrets.CLIENT_REGISTRY_USERNAME }}
           registryPassword: ${{ secrets.CLIENT_REGISTRY_PASSWORD }}
           containerAppName: client
           resourceGroup: rg-smart-task-manager-sea
           imageToBuild: acrsmarttaskmanagersea.azurecr.io/client:${{ github.sha }}
-          _buildArgumentsKey_: |
-            _buildArgumentsValues_
+          buildArguments: VITE_API_BASE_URL=https://api-gateway.jollycoast-3e03ff25.southeastasia.azurecontainerapps.io
 
 
