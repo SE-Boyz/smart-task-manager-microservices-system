@@ -91,19 +91,9 @@ const Auth = () => {
               </span>
             </div>
             <div className="space-y-6">
-              <p className="text-sm font-semibold tracking-widest uppercase opacity-80">
-                Gateway connected
-              </p>
               <h2 className="text-4xl md:text-5xl font-bold leading-tight tracking-tight">
                 Manage tasks, notifications, and reports from one place.
               </h2>
-              <p className="text-sm md:text-base max-w-md text-white/80 leading-relaxed">
-                This client talks only to the API Gateway at
-                {' '}
-                <span className="font-semibold">http://localhost:5000</span>
-                {' '}
-                for auth, task management, notifications, and summary data.
-              </p>
             </div>
           </div>
           <div className="absolute top-[-10%] right-[-10%] w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
