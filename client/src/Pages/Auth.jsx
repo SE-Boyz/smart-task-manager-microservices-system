@@ -115,7 +115,7 @@ const Auth = () => {
                 {isLogin ? 'Welcome back' : 'Create an account'}
               </h1>
               <p className="text-secondary text-sm leading-relaxed">
-                Sign in to manage your tasks through the gateway, or create a new account to get started.
+                Sign in to manages your tasks through the gateway, or create a new account to get started.
               </p>
             </div>
 
