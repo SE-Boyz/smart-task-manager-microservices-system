@@ -32,4 +32,12 @@ jobs:
       run: |
         npm install
         npm run lint -- --ext .ts,.tsx,.js,.jsx . || true
-        npm test
+
+    - name: Run Snyk to check for vulnerabilities
+      uses: snyk/actions/node@master
+      continue-on-error: true # So it doesn't block the build for minor warnings
+      env:
+        SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+
+    - name: Run Tests
+      run: npm test

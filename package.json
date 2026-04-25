@@ -6,7 +6,8 @@
     "prepare": "husky",
     "lint-all": "npm run lint --prefix api-gateway && npm run lint --prefix auth-service && npm run lint --prefix notification-service && npm run lint --prefix report-service && npm run lint --prefix audit-service && npm run lint --prefix task-service && npm run lint --prefix client",
     "test-all": "npm test --prefix api-gateway && npm test --prefix auth-service && npm test --prefix notification-service && npm test --prefix report-service && npm test --prefix audit-service && npm test --prefix task-service && npm test --prefix client",
-    "check-all": "npm run lint-all && npm run test-all"
+    "check-all": "npm run lint-all && npm run test-all",
+    "azure-deploy": ".\\deploy-all.ps1"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^8.59.0",
