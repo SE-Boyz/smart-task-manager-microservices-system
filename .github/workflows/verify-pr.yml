@@ -1,0 +1,40 @@
+name: Code Quality Check (Lint & Test)
+
+on:
+  push:
+    branches: [ "config/azure-cicd", "test/checks" ]
+  pull_request:
+    branches: [ "config/azure-cicd" ]
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service: [auth-service, task-service, notification-service, report-service, audit-service, api-gateway, client]
+    
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+        cache-dependency-path: './${{ matrix.service }}/package-lock.json'
+
+    - name: Install Dependencies
+      run: |
+        cd ${{ matrix.service }}
+        npm install
+
+    - name: Run Linting
+      run: |
+        cd ${{ matrix.service }}
+        npm run lint
+
+    - name: Run Unit Tests
+      run: |
+        cd ${{ matrix.service }}
+        npm test

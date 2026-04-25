@@ -1,0 +1,59 @@
+name: Deploy to Azure (via Cloud Build Server)
+
+on:
+  push:
+    branches: [ "config/azure-cicd" ]
+
+jobs:
+  lint-and-test:
+    runs-on: self-hosted
+    strategy:
+      matrix:
+        service: [auth-service, task-service, notification-service, report-service, audit-service, api-gateway, client]
+    
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Install Dependencies
+      run: |
+        cd ${{ matrix.service }}
+        npm install
+
+    - name: Run Linting
+      run: |
+        cd ${{ matrix.service }}
+        npm run lint
+
+    - name: Run Unit Tests
+      run: |
+        cd ${{ matrix.service }}
+        npm test
+
+  build-and-deploy:
+    needs: lint-and-test
+    runs-on: self-hosted
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Build and Push Images
+      run: |
+        services=("auth-service" "task-service" "notification-service" "report-service" "audit-service" "api-gateway")
+        for service in "${services[@]}"; do
+          docker build -t acrsmarttaskmanagersea.azurecr.io/$service:latest ./$service
+          docker push acrsmarttaskmanagersea.azurecr.io/$service:latest
+        done
+
+    - name: Build and Push Client
+      run: |
+        GATEWAY_URL=$(az containerapp show --name api-gateway --resource-group rg-smart-task-manager-sea --query "properties.configuration.ingress.fqdn" -o tsv)
+        docker build --build-arg VITE_API_BASE_URL=https://$GATEWAY_URL -t acrsmarttaskmanagersea.azurecr.io/client:latest ./client
+        docker push acrsmarttaskmanagersea.azurecr.io/client:latest
+
+    - name: Refresh Container Apps
+      run: |
+        services=("auth-service" "task-service" "notification-service" "report-service" "audit-service" "api-gateway" "client")
+        for service in "${services[@]}"; do
+          az containerapp update --name $service --resource-group rg-smart-task-manager-sea --image acrsmarttaskmanagersea.azurecr.io/$service:latest
+        done
