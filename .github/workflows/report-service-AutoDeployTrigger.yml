@@ -8,7 +8,7 @@ on:
       [ config/azure-cicd ]
     paths:
     - '**'
-    - '.github/workflows/report-service-AutoDeployTrigger-f8fa0c0d-5261-4fba-b79e-d067dc0776f4.yml'
+    - '.github/workflows/report-service-AutoDeployTrigger.yml'
 
   # Allow manual trigger 
   workflow_dispatch:      

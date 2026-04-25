@@ -8,7 +8,7 @@ on:
       [ config/azure-cicd ]
     paths:
     - '**'
-    - '.github/workflows/api-gateway-AutoDeployTrigger-979fa9d4-4cb0-4c5f-b46f-920796ac1c5d.yml'
+    - '.github/workflows/api-gateway-AutoDeployTrigger.yml'
 
   # Allow manual trigger 
   workflow_dispatch:      
