@@ -6,6 +6,7 @@ interface MongoLikeError extends Error {
 }
 
 const errorHandler: ErrorRequestHandler = (err: MongoLikeError, _req, res, _next) => {
+  // eslint-disable-line @typescript-eslint/no-unused-vars
   console.error(err)
 
   if (err.code === 11000) {
