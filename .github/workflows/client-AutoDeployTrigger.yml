@@ -34,7 +34,7 @@ jobs:
       - name: Build and push container image to registry
         uses: azure/container-apps-deploy-action@v2
         with:
-          appSourcePath: ${{ github.workspace }}/c/client
+          appSourcePath: ${{ github.workspace }}/client
           dockerfilePath: Dockerfile
           registryUrl: acrsmarttaskmanagersea.azurecr.io
           registryUsername: ${{ secrets.CLIENT_REGISTRY_USERNAME }}
