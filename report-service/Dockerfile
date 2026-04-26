@@ -3,7 +3,7 @@
 FROM node:20-alpine AS builder
 WORKDIR /app
 COPY package*.json ./
-RUN rm -f package-lock.json && npm install
+RUN npm install
 COPY . .
 RUN npm run build
 RUN npm prune --omit=dev && npm cache clean --force
