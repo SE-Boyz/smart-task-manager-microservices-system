@@ -149,10 +149,12 @@ export async function startTaskEventConsumer() {
 
       try {
         const taskEvent = parseTaskEvent(message)
+        console.log(`[Notification Service] 📥 SOURCE: Task Service (via RabbitMQ) | ACTION: Received ${taskEvent.eventType} | DATA: { title: "${taskEvent.title}" }`);
         await persistTaskEventNotification(taskEvent)
+        console.log(`[Notification Service] ✅ ACTION: Notification Created | FOR USER: ${taskEvent.userId}`);
         consumerChannel.ack(message)
       } catch (error) {
-        console.error('Failed to process task event:', error)
+        console.error('[Notification Service] ❌ ACTION: Failed to process event', error)
         consumerChannel.nack(message, false, false)
       }
     },

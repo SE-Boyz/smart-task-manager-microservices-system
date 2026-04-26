@@ -63,6 +63,7 @@ export async function publishUserEvent(userEvent: UserEvent) {
       type: userEvent.eventType,
     },
   )
+  console.log(`[Auth Service] 📤 ACTION: ${userEvent.eventType} | DATA: { email: "${userEvent.email}" } | STATUS: Publishing to RabbitMQ...`);
 }
 
 export async function closeBrokerConnection() {
