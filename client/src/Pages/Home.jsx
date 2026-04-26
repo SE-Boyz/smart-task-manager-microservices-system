@@ -273,10 +273,10 @@ const Home = () => {
         <div className="max-w-7xl mx-auto px-4 md:px-8 py-4 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
             <p className="text-xs uppercase tracking-[0.3em] text-primary font-bold">
-              Smart Task Manager
+              Smart Tasks Manager
             </p>
             <h1 className="text-2xl md:text-3xl font-black tracking-tight">
-              Welcome{user?.name ? `, ${user.name}` : ''}.
+              Welcomes{user?.name ? `, ${user.name}` : ''}.
             </h1>
             <p className="text-sm text-secondary">
               Your frontend is now using the API Gateway at
@@ -387,11 +387,10 @@ const Home = () => {
                           <div className="flex flex-wrap items-center gap-2">
                             <h3 className="text-lg font-bold text-on-surface">{task.title}</h3>
                             <span
-                              className={`rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wider ${
-                                task.status === 'completed'
-                                  ? 'bg-emerald-100 text-emerald-700'
-                                  : 'bg-amber-100 text-amber-700'
-                              }`}
+                              className={`rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wider ${task.status === 'completed'
+                                ? 'bg-emerald-100 text-emerald-700'
+                                : 'bg-amber-100 text-amber-700'
+                                }`}
                             >
                               {task.status}
                             </span>
@@ -534,15 +533,13 @@ const Home = () => {
       </main>
 
       <div
-        className={`fixed inset-0 z-30 bg-slate-950/25 backdrop-blur-sm transition ${
-          isDrawerOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
-        }`}
+        className={`fixed inset-0 z-30 bg-slate-950/25 backdrop-blur-sm transition ${isDrawerOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+          }`}
       >
         <div className="flex min-h-full justify-end">
           <div
-            className={`h-full w-full max-w-md bg-white p-8 shadow-2xl transition-transform ${
-              isDrawerOpen ? 'translate-x-0' : 'translate-x-full'
-            }`}
+            className={`h-full w-full max-w-md bg-white p-8 shadow-2xl transition-transform ${isDrawerOpen ? 'translate-x-0' : 'translate-x-full'
+              }`}
           >
             <div className="flex items-center justify-between gap-4">
               <div>
