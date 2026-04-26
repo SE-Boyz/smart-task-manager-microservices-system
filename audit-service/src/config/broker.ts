@@ -1,6 +1,5 @@
 import amqp, { type Channel, type ChannelModel, type ConsumeMessage } from 'amqplib'
 import { createAuditLog } from '../models/auditLogModel.js'
-import type { UserEvent } from '../types/userEvent.js'
 import { getEnv } from './env.js'
 
 const FAILED_ROUTING_KEY = 'user.failed'
@@ -21,56 +20,7 @@ function registerBrokerListeners(connection: ChannelModel) {
   })
 }
 
-function isUserEvent(payload: unknown): payload is UserEvent {
-  if (typeof payload !== 'object' || payload === null) {
-    return false
-  }
 
-  const event = payload as Record<string, unknown>
-
-  return (
-    typeof event.eventId === 'string' &&
-    (event.eventType === 'user.registered' || event.eventType === 'user.logged_in') &&
-    typeof event.occurredAt === 'string' &&
-    typeof event.userId === 'string' &&
-    typeof event.name === 'string' &&
-    typeof event.email === 'string'
-  )
-}
-
-function parseUserEvent(message: ConsumeMessage) {
-  const payload = JSON.parse(message.content.toString('utf-8')) as unknown
-
-  if (!isUserEvent(payload)) {
-    throw new Error('Received invalid user event payload.')
-  }
-
-  return payload
-}
-
-async function persistUserAuditLog(userEvent: UserEvent) {
-  try {
-    await createAuditLog({
-      id: userEvent.eventId,
-      userId: userEvent.userId,
-      email: userEvent.email,
-      name: userEvent.name,
-      eventType: userEvent.eventType,
-      createdAt: userEvent.occurredAt,
-    })
-  } catch (error: unknown) {
-    if (
-      typeof error === 'object' &&
-      error !== null &&
-      'code' in error &&
-      error.code === 11000
-    ) {
-      return
-    }
-
-    throw error
-  }
-}
 
 export async function connectToBroker() {
   if (brokerConnection && consumerChannel) {
@@ -136,11 +86,24 @@ export async function startUserEventConsumer() {
       }
 
       try {
-        const userEvent = parseUserEvent(message)
-        await persistUserAuditLog(userEvent)
+        const payload = JSON.parse(message.content.toString('utf-8')) as any;
+        const source = payload.eventType.startsWith('task.') ? 'Task Service' : 'Auth Service';
+        
+        console.log(`[Audit Service] 📥 SOURCE: ${source} (via RabbitMQ) | ACTION: Persistence | EVENT: ${payload.eventType}`);
+
+        // Save ANY event to the database
+        await createAuditLog({
+          id: payload.eventId || payload.id || new Date().getTime().toString(),
+          userId: payload.userId,
+          eventType: payload.eventType,
+          metadata: payload, 
+          createdAt: payload.occurredAt || new Date().toISOString(),
+        });
+
+        console.log(`[Audit Service] ✅ ACTION: Audit Log Stored | DATA: { type: "${payload.eventType}", id: "${payload.eventId || payload.id}" }`);
         consumerChannel.ack(message)
       } catch (error) {
-        console.error('Failed to process user event:', error)
+        console.error('[Audit Service] ❌ ACTION: Failed to persist audit log', error)
         consumerChannel.nack(message, false, false)
       }
     },

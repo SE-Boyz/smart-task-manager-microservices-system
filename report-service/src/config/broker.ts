@@ -114,10 +114,12 @@ export async function startTaskEventConsumer() {
 
       try {
         const taskEvent = parseTaskEvent(message)
+        console.log(`[Report Service] 📥 SOURCE: Task Service (via RabbitMQ) | ACTION: Updating Projection | EVENT: ${taskEvent.eventType}`);
         await applyTaskEventToProjection(taskEvent)
+        console.log(`[Report Service] ✅ ACTION: Projection Updated | DATA: { taskId: "${taskEvent.taskId}", status: "${taskEvent.status}" }`);
         consumerChannel.ack(message)
       } catch (error) {
-        console.error('Failed to process task event for report projection:', error)
+        console.error('[Report Service] ❌ ACTION: Failed to update projection', error)
         consumerChannel.nack(message, false, false)
       }
     },

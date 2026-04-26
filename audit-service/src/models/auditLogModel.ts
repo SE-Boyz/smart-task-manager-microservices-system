@@ -3,18 +3,10 @@ import type { UserEventType } from '../types/userEvent.js'
 
 export interface AuditLogRecord {
   id: string
-  userId: string
-  email: string
-  name: string
-  eventType: UserEventType
+  userId?: string
+  eventType: string
+  metadata: Record<string, any>
   createdAt: string
-}
-
-export interface AuditSummaryRecord {
-  total: number
-  registered: number
-  loggedIn: number
-  generatedAt: string
 }
 
 const auditLogSchema = new mongoose.Schema<AuditLogRecord>(
@@ -27,25 +19,17 @@ const auditLogSchema = new mongoose.Schema<AuditLogRecord>(
     },
     userId: {
       type: String,
-      required: true,
       index: true,
-    },
-    email: {
-      type: String,
-      required: true,
-      trim: true,
-      lowercase: true,
-    },
-    name: {
-      type: String,
-      required: true,
-      trim: true,
     },
     eventType: {
       type: String,
       required: true,
-      enum: ['user.registered', 'user.logged_in'],
       index: true,
+    },
+    metadata: {
+      type: mongoose.Schema.Types.Mixed,
+      required: true,
+      default: {},
     },
     createdAt: {
       type: String,
@@ -74,19 +58,4 @@ export async function getAuditLogsByUser(userId: string) {
     .sort({ createdAt: -1 })
     .select('-_id')
     .lean<AuditLogRecord[]>()
-}
-
-export async function getAuditSummaryByUser(userId: string): Promise<AuditSummaryRecord> {
-  const [total, registered, loggedIn] = await Promise.all([
-    AuditLog.countDocuments({ userId }),
-    AuditLog.countDocuments({ userId, eventType: 'user.registered' }),
-    AuditLog.countDocuments({ userId, eventType: 'user.logged_in' }),
-  ])
-
-  return {
-    total,
-    registered,
-    loggedIn,
-    generatedAt: new Date().toISOString(),
-  }
 }

@@ -63,6 +63,7 @@ export async function publishTaskEvent(taskEvent: TaskEvent) {
       type: taskEvent.eventType,
     },
   )
+  console.log(`[Task Service] 📤 ACTION: ${taskEvent.eventType} | DATA: { id: ${taskEvent.taskId}, title: "${taskEvent.title}" } | STATUS: Publishing to RabbitMQ...`);
 }
 
 export async function closeBrokerConnection() {
