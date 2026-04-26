@@ -133,6 +133,35 @@ export async function connectToBroker() {
   return channel
 }
 
+export async function publishNotificationEvent(event: {
+  eventType: string
+  notificationId: string
+  userId: string
+  taskId?: string
+  occurredAt: string
+}) {
+  if (!consumerChannel) {
+    throw new Error('RabbitMQ channel is not initialized.')
+  }
+
+  const { taskEventsExchange } = getEnv()
+
+  consumerChannel.publish(
+    taskEventsExchange,
+    event.eventType,
+    Buffer.from(JSON.stringify(event)),
+    {
+      persistent: true,
+      contentType: 'application/json',
+      contentEncoding: 'utf-8',
+      messageId: event.notificationId,
+      timestamp: Date.parse(event.occurredAt),
+      type: event.eventType,
+    },
+  )
+  console.log(`[Notification Service] 📤 ACTION: ${event.eventType} | DATA: { id: "${event.notificationId}" } | STATUS: Logged to System Bus`);
+}
+
 export async function startTaskEventConsumer() {
   if (!consumerChannel) {
     throw new Error('RabbitMQ channel is not initialized.')
@@ -152,6 +181,16 @@ export async function startTaskEventConsumer() {
         console.log(`[Notification Service] 📥 SOURCE: Task Service (via RabbitMQ) | ACTION: Received ${taskEvent.eventType} | DATA: { title: "${taskEvent.title}" }`);
         await persistTaskEventNotification(taskEvent)
         console.log(`[Notification Service] ✅ ACTION: Notification Created | FOR USER: ${taskEvent.userId}`);
+        
+        // Notify the Audit Service about this action
+        await publishNotificationEvent({
+          eventType: 'notification.sent',
+          notificationId: taskEvent.eventId,
+          userId: taskEvent.userId,
+          taskId: taskEvent.taskId,
+          occurredAt: new Date().toISOString(),
+        });
+
         consumerChannel.ack(message)
       } catch (error) {
         console.error('[Notification Service] ❌ ACTION: Failed to process event', error)

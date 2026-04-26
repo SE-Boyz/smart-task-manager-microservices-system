@@ -98,6 +98,35 @@ export async function connectToBroker() {
   return channel
 }
 
+export async function publishReportEvent(event: {
+  eventType: string
+  reportEventId: string
+  userId: string
+  taskId?: string
+  occurredAt: string
+}) {
+  if (!consumerChannel) {
+    throw new Error('RabbitMQ channel is not initialized.')
+  }
+
+  const { taskEventsExchange } = getEnv()
+
+  consumerChannel.publish(
+    taskEventsExchange,
+    event.eventType,
+    Buffer.from(JSON.stringify(event)),
+    {
+      persistent: true,
+      contentType: 'application/json',
+      contentEncoding: 'utf-8',
+      messageId: event.reportEventId,
+      timestamp: Date.parse(event.occurredAt),
+      type: event.eventType,
+    },
+  )
+  console.log(`[Report Service] 📤 ACTION: ${event.eventType} | DATA: { id: "${event.reportEventId}" } | STATUS: Logged to System Bus`);
+}
+
 export async function startTaskEventConsumer() {
   if (!consumerChannel) {
     throw new Error('RabbitMQ channel is not initialized.')
@@ -117,6 +146,16 @@ export async function startTaskEventConsumer() {
         console.log(`[Report Service] 📥 SOURCE: Task Service (via RabbitMQ) | ACTION: Updating Projection | EVENT: ${taskEvent.eventType}`);
         await applyTaskEventToProjection(taskEvent)
         console.log(`[Report Service] ✅ ACTION: Projection Updated | DATA: { taskId: "${taskEvent.taskId}", status: "${taskEvent.status}" }`);
+        
+        // Notify the Audit Service about this action
+        await publishReportEvent({
+          eventType: 'report.projection_updated',
+          reportEventId: taskEvent.eventId,
+          userId: taskEvent.userId,
+          taskId: taskEvent.taskId,
+          occurredAt: new Date().toISOString(),
+        });
+
         consumerChannel.ack(message)
       } catch (error) {
         console.error('[Report Service] ❌ ACTION: Failed to update projection', error)

@@ -18,18 +18,5 @@ const router = express.Router()
  */
 router.get('/audit-logs', authMiddleware, auditController.getAuditLogs)
 
-/**
- * @swagger
- * /audit-logs/summary:
- *   get:
- *     summary: Get the authenticated user's audit summary
- *     tags: [Audit]
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: Audit summary
- */
-router.get('/audit-logs/summary', authMiddleware, auditController.getAuditSummary)
 
 export default router
