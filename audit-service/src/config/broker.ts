@@ -55,6 +55,15 @@ export async function connectToBroker() {
     durable: true,
   })
   await channel.bindQueue(userEventsQueue, userEventsExchange, 'user.*')
+  
+  // Master Integration: Listen to Task, Notification, and Report events
+  const TASK_EXCHANGE = process.env.TASK_EVENTS_EXCHANGE || 'task.events';
+  await channel.assertExchange(TASK_EXCHANGE, 'topic', { durable: true });
+  await channel.bindQueue(userEventsQueue, TASK_EXCHANGE, 'task.*');
+  await channel.bindQueue(userEventsQueue, TASK_EXCHANGE, 'notification.*');
+  await channel.bindQueue(userEventsQueue, TASK_EXCHANGE, 'report.*');
+  console.log(`[Audit Service] 🔗 Master Connection established for Task, Notification, and Report events.`);
+
   await channel.bindQueue(
     userEventsDeadLetterQueue,
     userEventsDeadLetterExchange,
@@ -87,7 +96,13 @@ export async function startUserEventConsumer() {
 
       try {
         const payload = JSON.parse(message.content.toString('utf-8')) as any;
-        const source = payload.eventType.startsWith('task.') ? 'Task Service' : 'Auth Service';
+        
+        // Smarter source detection
+        let source = 'System';
+        if (payload.eventType.startsWith('task.')) source = 'Task Service';
+        else if (payload.eventType.startsWith('user.')) source = 'Auth Service';
+        else if (payload.eventType.startsWith('notification.')) source = 'Notification Service';
+        else if (payload.eventType.startsWith('report.')) source = 'Report Service';
         
         console.log(`[Audit Service] 📥 SOURCE: ${source} (via RabbitMQ) | ACTION: Persistence | EVENT: ${payload.eventType}`);
 
